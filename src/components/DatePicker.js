@@ -156,7 +156,6 @@ export default function DatePicker({ onDateChange }) {
   return (
     <div className={`rdp-wrapper ${open ? "rdp-wrapper--open" : ""}`}>
       <DatePickerLibrary
-        selected={null}
         onChange={handleChange}
         customInput={<CustomInput />}
         open={open}
