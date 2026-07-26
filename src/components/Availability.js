@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { availability, basicInformation } from "../data";
+import bookings from "../data/bookings";
+import { basicInformation } from "../data/basicInformation";
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -65,7 +66,12 @@ function Calendar({ ref, month, days, status }) {
 
 export default function Availability() {
   const [selected, setSelected] = useState(null);
+  const [availability, setAvailability] = useState([]);
   const calendarRef = useRef(null);
+
+  useEffect(() => {
+    bookings.availability().then(setAvailability);
+  }, []);
 
   const handleSelect = (index) => {
     setSelected(selected === index ? null : index);
@@ -93,7 +99,7 @@ export default function Availability() {
         <div className="pricing-card">
           <div className="pricing-header">
             <div className="pricing-price">
-              <span className="currency">€</span>
+              <span className="currency">{"\u20AC"}</span>
               <span className="amount">{basicInformation.cost}</span>
               <span className="period">/ night</span>
             </div>
@@ -119,7 +125,7 @@ export default function Availability() {
             ))}
           </div>
 
-          {selected !== null && (
+          {selected !== null && availability[selected] && (
             <Calendar
               ref={calendarRef}
               month={availability[selected].month}
@@ -127,20 +133,6 @@ export default function Availability() {
               status={availability[selected].status}
             />
           )}
-
-          <div className="pricing-footer">
-            <div className="legend">
-              <span className="legend-item">
-                <span className="legend-dot dot-available"></span> Available
-              </span>
-              <span className="legend-item">
-                <span className="legend-dot dot-booked"></span> Booked
-              </span>
-            </div>
-            <a href="#contact" className="btn btn-primary">
-              Reserve Your Stay
-            </a>
-          </div>
         </div>
 
         <div className="features-row">

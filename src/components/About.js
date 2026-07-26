@@ -1,4 +1,5 @@
-import { amenities, text } from "../data";
+import { amenities } from "../data/amenities";
+import { text } from "../data/text";
 
 export default function About() {
   return (

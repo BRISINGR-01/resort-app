@@ -990,7 +990,7 @@
 }
 
 /* ============================================
-   DATE PICKER (react-datepicker overrides)
+   DATE PICKER (custom modal calendar)
    ============================================ */
 .rdp-wrapper {
   position: relative;
@@ -1010,15 +1010,11 @@
   transition: var(--transition);
   width: 100%;
   box-sizing: border-box;
+  cursor: pointer;
 }
 
 .rdp-display:hover {
   border-color: #ccc;
-}
-
-.rdp-wrapper--open .rdp-display {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.15);
 }
 
 .rdp-display-icon {
@@ -1050,172 +1046,301 @@
   color: var(--color-danger);
 }
 
-/* Step hint + legend row (shown below input when calendar is open) */
-.rdp-footer-row {
+/* --- Calendar Modal --- */
+.cdp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: cdpFadeIn 0.2s ease;
+}
+
+@keyframes cdpFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.cdp-modal {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-width: 400px;
+  overflow: hidden;
+  animation: cdpSlideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes cdpSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.cdp-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 8px;
+  padding: 20px 24px 0;
 }
 
-.rdp-step {
-  font-size: 0.78rem;
+.cdp-modal-header h3 {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
   font-weight: 600;
-  color: var(--color-accent);
-  letter-spacing: 0.02em;
+  color: var(--color-primary);
+  margin: 0;
 }
 
-/* react-datepicker core overrides */
-.rdp-calendar .react-datepicker {
-  font-family: var(--font-body) !important;
-  border: none !important;
-  background: transparent !important;
-}
-
-.rdp-calendar .react-datepicker__month-container {
-  background: transparent !important;
-}
-
-.rdp-calendar .react-datepicker__header {
-  background: transparent !important;
-  border-bottom: none !important;
-  padding-top: 8px !important;
-}
-
-.rdp-calendar .react-datepicker__current-month {
-  font-family: var(--font-display) !important;
-  font-size: 0.95rem !important;
-  font-weight: 600 !important;
-  color: var(--color-primary) !important;
-  margin-bottom: 8px !important;
-}
-
-.rdp-calendar .react-datepicker__day-names {
-  margin-top: 0 !important;
-}
-
-.rdp-calendar .react-datepicker__day-name {
-  font-size: 0.68rem !important;
-  font-weight: 600 !important;
-  color: var(--color-text-light) !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
-  width: 36px !important;
-  line-height: 36px !important;
-}
-
-.rdp-calendar .react-datepicker__day {
-  width: 36px !important;
-  height: 36px !important;
-  line-height: 36px !important;
-  font-size: 0.82rem !important;
-  font-weight: 500 !important;
-  color: var(--color-dark);
-  border-radius: 8px !important;
-  margin: 1px !important;
-  transition: background 0.15s, color 0.15s !important;
-}
-
-.rdp-calendar .react-datepicker__day:hover {
-  background: var(--color-sand) !important;
-  border-radius: 8px !important;
-}
-
-/* Disabled / booked days */
-.rdp-calendar .react-datepicker__day--disabled,
-.rdp-calendar .react-datepicker__day--excluded {
-  color: white !important;
-  cursor: not-allowed !important;
-  text-decoration: line-through !important;
-  background: #f67d65b5 !important;
-}
-
-.rdp-calendar .react-datepicker__day--disabled:hover {
-  background: transparent !important;
-}
-
-/* Outside month greyed */
-.rdp-calendar .react-datepicker__day--outside-month {
-  color: #ddd !important;
-}
-
-/* Library applies --selected to both months; neutralise then let dayClassName handle it */
-.rdp-calendar .react-datepicker__day--selected,
-.rdp-calendar .react-datepicker__day--keyboard-selected {
-  background: transparent !important;
-  color: var(--color-dark) !important;
-  font-weight: 500 !important;
-}
-
-.rdp-calendar .rdp-selected-day {
-  background: var(--color-primary) !important;
-  color: var(--color-white) !important;
-  font-weight: 600 !important;
-  border-radius: 8px !important;
-}
-
-.rdp-calendar .rdp-selected-day:hover {
-  background: var(--color-primary-light) !important;
-}
-
-/* In-range days */
-.rdp-in-range,
-.rdp-calendar .react-datepicker__day--in-range {
-  background: rgba(201, 169, 110, 0.15) !important;
-  border-radius: 0 !important;
-  color: var(--color-dark) !important;
-}
-
-.rdp-calendar .react-datepicker__day--in-range:hover {
-  background: rgba(201, 169, 110, 0.25) !important;
-  border-radius: 0 !important;
-}
-
-.rdp-booked-day {
-  position: relative;
-}
-
-/* Month container side-by-side */
-.rdp-calendar .react-datepicker__month-wrapper {
-  display: flex !important;
-}
-
-/* Navigation arrows */
-.rdp-calendar .react-datepicker__navigation {
-  top: 8px !important;
-}
-
-.rdp-calendar .react-datepicker__navigation-icon::before {
-  border-color: var(--color-text) !important;
-}
-
-.rdp-calendar .react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
-  border-color: var(--color-accent) !important;
-}
-
-/* Legend */
-.rdp-legend {
-  display: flex;
-  gap: 16px;
-}
-
-.rdp-legend-item {
+.cdp-close {
+  background: none;
+  border: none;
+  color: var(--color-text-light);
+  font-size: 1.5rem;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.72rem;
+  justify-content: center;
+  border-radius: 50%;
+  transition: var(--transition);
+}
+
+.cdp-close:hover {
+  background: var(--color-sand);
+  color: var(--color-dark);
+}
+
+/* Selection chips */
+.cdp-selection-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+}
+
+.cdp-selection-chip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+
+.cdp-selection-chip.cdp-active {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.15);
+}
+
+.cdp-chip-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--color-text-light);
 }
 
-.rdp-legend-swatch {
+.cdp-chip-value {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-dark);
+}
+
+.cdp-arrow {
+  color: var(--color-text-light);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* Month navigation */
+.cdp-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px 12px;
+}
+
+.cdp-nav-btn {
+  background: none;
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text);
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.cdp-nav-btn:hover {
+  background: var(--color-sand);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.cdp-month-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* Weekday headers */
+.cdp-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 0 20px;
+  margin-bottom: 4px;
+}
+
+.cdp-weekday {
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 0;
+}
+
+/* Day grid */
+.cdp-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  padding: 0 20px;
+}
+
+.cdp-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-dark);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.cdp-day:hover:not(.cdp-day-disabled):not(.cdp-day-selected) {
+  background: var(--color-sand);
+}
+
+.cdp-day-empty {
+  cursor: default;
+}
+
+.cdp-day-disabled {
+  color: var(--color-text-light);
+  opacity: 0.35;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.cdp-day-selected {
+  background: var(--color-primary) !important;
+  color: var(--color-white) !important;
+  font-weight: 600;
+}
+
+.cdp-day-selected:hover {
+  background: var(--color-primary-light) !important;
+}
+
+.cdp-day-in-range {
+  background: rgba(201, 169, 110, 0.18);
+  border-radius: 0;
+  color: var(--color-dark);
+}
+
+.cdp-day-limited {
+  color: var(--color-warning);
+  font-weight: 600;
+}
+
+/* Legend */
+.cdp-legend {
+  display: flex;
+  gap: 16px;
+  padding: 14px 24px 0;
+  margin: 8px 20px 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.cdp-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  color: var(--color-text-light);
+}
+
+.cdp-legend-swatch {
   width: 12px;
   height: 12px;
   border-radius: 3px;
 }
 
-.rdp-legend-available { background: var(--color-white); border: 1px solid var(--color-border); }
-.rdp-legend-limited   { background: var(--color-sand); border: 1px solid var(--color-warning); }
-.rdp-legend-booked    { background: var(--color-white); border: 1px solid var(--color-border); text-decoration: line-through; color: #ccc; }
+.cdp-legend-available { background: var(--color-white); border: 1px solid var(--color-border); }
+.cdp-legend-limited   { background: var(--color-sand); border: 1px solid var(--color-warning); }
+.cdp-legend-booked    { background: var(--color-white); border: 1px solid var(--color-border); text-decoration: line-through; color: #ccc; }
+
+/* Actions */
+.cdp-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px 20px;
+}
+
+.cdp-btn {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 10px 24px;
+  border-radius: var(--radius-xl);
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.cdp-btn-primary {
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+.cdp-btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-light);
+}
+
+.cdp-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cdp-btn-secondary {
+  background: transparent;
+  color: var(--color-text-light);
+  border: 1.5px solid var(--color-border);
+}
+
+.cdp-btn-secondary:hover {
+  background: var(--color-sand);
+  border-color: var(--color-text-light);
+}
 
 /* ============================================
    CONTACT
@@ -1655,15 +1780,7 @@
     gap: 50px;
   }
 
-  .rdp-footer-row {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
 
-  .rdp-legend {
-    flex-wrap: wrap;
-    gap: 10px;
-  }
 
   .footer-top {
     grid-template-columns: 1fr;
@@ -1743,21 +1860,8 @@
     padding: 28px;
   }
 
-  .rdp-footer-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-  }
-
-  .rdp-calendar .react-datepicker__day {
-    width: 30px !important;
-    height: 30px !important;
-    line-height: 30px !important;
-    font-size: 0.72rem !important;
-  }
-
-  .rdp-legend {
-    gap: 8px;
+  .cdp-modal {
+    max-width: 360px;
   }
 
   .about-img-accent {

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { galleryImages, text } from "../data";
+import { galleryImages } from "../data/galleryImages";
+import { text } from "../data/text";
 
 export default function Gallery() {
   const [selected, setSelected] = useState(null);

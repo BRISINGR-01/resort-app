@@ -1,4 +1,4 @@
-import { text } from "../data";
+import { text } from "../data/text";
 
 export default function Hero() {
   return (

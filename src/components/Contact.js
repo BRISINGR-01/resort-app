@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import DatePicker from "./DatePicker";
-import { basicInformation } from "../data";
+import { basicInformation } from "../data/basicInformation";
 
 export default function Contact() {
   const [guests, setGuests] = useState(1);
