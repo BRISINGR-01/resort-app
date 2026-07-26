@@ -1,3 +1,52 @@
+export const basicInformation = {
+  cost: 100,
+  contact: {
+    location: {
+      maps: "https://maps.app.goo.gl/jHkYXsp1XhXaSntE9",
+      text: "Созопол",
+    },
+    email: "",
+    phone: "088 266 2200",
+    facebook: "https://www.facebook.com/profile.php?id=61591135034073",
+  },
+  maxGuests: 3,
+};
+
+export const text = {
+  homePage: {
+    name: "Design Studio-Green life",
+    description:
+      "За незабравима почивка на море в комфортна и много уютна обстановка, заповядайте в Дизайн студио в комплекс Green life Созопол / Каваци",
+  },
+  aboutPage: {
+    greeting: "Насладете се на спокойствие, комфорт и море",
+    description: (
+      <>
+        Добре дошли в нашето уютно студио, разположено в модерен комплекс на
+        българското Черноморие - идеалното място за спокойна и незабравима
+        почивка.
+        <br />
+        Студиото е с площ от 40 кв.м. и е подходящо за до 4 гости. Разполага с
+        комфортна спалня (160×200 см), разтегателен диван, напълно оборудван
+        кухненски кът, климатик, Wi-Fi, телевизия, пералня и просторна тераса за
+        сутрешното кафе или вечерния отдих.
+        <br />
+        Комплексът предлага красив басейн, ресторант, детски кът, денонощна
+        охрана и отлично поддържани зелени площи, които създават спокойна и
+        приятна атмосфера. Плажът и всички необходими удобства са на удобно
+        разстояние, което прави студиото отличен избор както за семейства, така
+        и за двойки. Подарете си комфорт, спокойствие и морски емоции - очакваме
+        ви!
+      </>
+    ),
+  },
+  galleryPage: {
+    title: "Един поглед към вашата почивка",
+    description:
+      "Разгледайте студиото, красивия комплекс, басейна и атмосферата, която превръща всяка почивка в незабравимо изживяване.",
+  },
+};
+
 export const galleryImages = [
   {
     url: "https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?w=800&q=80",
@@ -101,10 +150,40 @@ export const availability = [
   { month: "April 2027", status: "available", spots: 11 },
   { month: "May 2027", status: "available", spots: 13 },
   { month: "June 2027", status: "limited", spots: 5 },
-].map((item, i) => ({
-  ...item,
-  days: generateDays(item.month, item.status, i),
-}));
+].map((item, i) => {
+  const [monthName, yearStr] = item.month.split(" ");
+
+  const year = parseInt(yearStr);
+  const days = generateDays(item.month, item.status, i);
+  const monthNum = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ].indexOf(monthName);
+  const availableDays = days.filter((day) => day === "available").length;
+  const totalDays = new Date(year, monthNum + 1, 0).getDate();
+
+  return {
+    ...item,
+    status:
+      availableDays === 0
+        ? "booked"
+        : availableDays < 10
+          ? "limited"
+          : "available",
+    spots: availableDays,
+    days,
+  };
+});
 
 export const amenities = [
   { icon: "icons/sea.svg", label: "Close to the sea" },

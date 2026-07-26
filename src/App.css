@@ -293,7 +293,7 @@
 
 .hero-tagline {
   font-family: var(--font-accent);
-  font-size: 1.2rem;
+  font-size: 2.2rem;
   font-weight: 300;
   color: var(--color-accent-light);
   letter-spacing: 0.1em;
@@ -302,7 +302,7 @@
 
 .hero-title {
   font-family: var(--font-display);
-  font-size: clamp(3rem, 8vw, 5.5rem);
+  font-size: clamp(3rem, 4rem, 5.5rem);
   font-weight: 400;
   color: var(--color-white);
   line-height: 1.1;
@@ -366,7 +366,7 @@
    ABOUT
    ============================================ */
 .about {
-  padding: 120px 0;
+  padding: 80px 0;
   background: var(--color-cream);
 }
 
@@ -375,6 +375,12 @@
   grid-template-columns: 1fr 1fr;
   gap: 80px;
   align-items: center;
+}
+
+.about-left-side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .about-images {
@@ -504,7 +510,7 @@
    GALLERY
    ============================================ */
 .gallery {
-  padding: 120px 0;
+  padding: 80px 0;
   background: var(--color-white);
 }
 
@@ -636,7 +642,7 @@
    AVAILABILITY
    ============================================ */
 .availability {
-  padding: 120px 0;
+  padding: 50px 0;
   background: var(--color-sand);
 }
 
@@ -646,13 +652,13 @@
   box-shadow: var(--shadow-lg);
   overflow: hidden;
   max-width: 900px;
-  margin: 0 auto 60px;
+  margin: 0 auto 30px;
 }
 
 .pricing-header {
   background: var(--color-primary);
   color: var(--color-white);
-  padding: 40px;
+  padding: 20px;
   text-align: center;
 }
 
@@ -673,7 +679,7 @@
 
 .pricing-price .amount {
   font-family: var(--font-display);
-  font-size: 3.5rem;
+  font-size: 2rem;
   font-weight: 700;
   line-height: 1;
 }
@@ -1133,14 +1139,7 @@
   color: #ddd !important;
 }
 
-.rdp-selected-day {
-  background: var(--color-primary) !important;
-  color: var(--color-white) !important;
-  font-weight: 600 !important;
-  border-radius: 8px !important;
-}
-
-/* Library applies --selected to both months; neutralise then re-apply in first month only */
+/* Library applies --selected to both months; neutralise then let dayClassName handle it */
 .rdp-calendar .react-datepicker__day--selected,
 .rdp-calendar .react-datepicker__day--keyboard-selected {
   background: transparent !important;
@@ -1148,15 +1147,14 @@
   font-weight: 500 !important;
 }
 
-.rdp-calendar .react-datepicker__month-wrapper:first-child .react-datepicker__day--selected,
-.rdp-calendar .react-datepicker__month-wrapper:first-child .react-datepicker__day--keyboard-selected {
+.rdp-calendar .rdp-selected-day {
   background: var(--color-primary) !important;
   color: var(--color-white) !important;
   font-weight: 600 !important;
+  border-radius: 8px !important;
 }
 
-.rdp-selected-day:hover,
-.rdp-calendar .react-datepicker__month-wrapper:first-child .react-datepicker__day--selected:hover {
+.rdp-calendar .rdp-selected-day:hover {
   background: var(--color-primary-light) !important;
 }
 
@@ -1223,7 +1221,7 @@
    CONTACT
    ============================================ */
 .contact {
-  padding: 120px 0;
+  padding: 80px 0;
   background: var(--color-white);
 }
 
@@ -1352,6 +1350,128 @@
   padding-right: 36px;
 }
 
+.guest-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  border: 1.5px solid var(--color-border);
+  width: min-content;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.guest-selector:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.15);
+}
+
+.guest-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: var(--color-accent-light);
+  border: none;
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--color-dark);
+  cursor: pointer;
+  transition: var(--transition);
+  user-select: none;
+}
+
+.guest-btn:hover {
+  background: var(--color-accent-light);
+}
+
+.guest-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 44px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  background: var(--color-white);
+}
+
+.form-error {
+  font-size: 0.78rem;
+  color: var(--color-danger);
+  margin-top: 2px;
+}
+
+.input-error,
+.input-error:focus {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px rgba(196, 93, 74, 0.15);
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: var(--color-white);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.form-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  padding: 60px 24px;
+}
+
+.form-success-icon {
+  color: var(--color-success);
+  animation: fadeScale 0.4s ease-out;
+}
+
+.form-fail-icon {
+  color: var(--color-danger);
+  animation: fadeScale 0.4s ease-out;
+}
+
+.form-success h3 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--color-dark);
+}
+
+.form-success p {
+  color: var(--color-text);
+  max-width: 300px;
+}
+
+@keyframes fadeScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* ============================================
    FOOTER
    ============================================ */
@@ -1464,8 +1584,8 @@
     height: 100vh;
     background: var(--color-primary);
     flex-direction: column;
-    padding: 100px 40px 40px;
-    gap: 4px;
+    padding: 40px 40px 40px;
+    gap: 24px;
     transform: translateX(100%);
     transition: var(--transition-slow);
     box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3);

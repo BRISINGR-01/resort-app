@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { galleryImages } from '../data';
+import { useState } from "react";
+import { galleryImages, text } from "../data";
 
 export default function Gallery() {
   const [selected, setSelected] = useState(null);
@@ -8,12 +8,8 @@ export default function Gallery() {
     <section id="gallery" className="gallery">
       <div className="container">
         <div className="section-header">
-          <p className="section-label">Gallery</p>
-          <h2 className="section-title">A Glimpse of <em>Paradise</em></h2>
-          <p className="section-desc">
-            Every corner tells a story. Explore our studio, the resort grounds,
-            and the breathtaking natural beauty that surrounds us.
-          </p>
+          <h2 className="section-title">{text.galleryPage.title}</h2>
+          <p className="section-desc">{text.galleryPage.description}</p>
         </div>
 
         <div className="gallery-grid">
@@ -35,8 +31,14 @@ export default function Gallery() {
 
       {selected && (
         <div className="lightbox" onClick={() => setSelected(null)}>
-          <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
-            <button className="lightbox-close" onClick={() => setSelected(null)}>
+          <div
+            className="lightbox-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="lightbox-close"
+              onClick={() => setSelected(null)}
+            >
               &times;
             </button>
             <img src={selected.url} alt={selected.alt} />

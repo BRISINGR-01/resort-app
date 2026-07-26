@@ -47,9 +47,9 @@ function formatShort(date) {
   });
 }
 
-export default function DatePicker({ onDateChange }) {
-  const [checkIn, setCheckIn] = useState(null);
-  const [checkOut, setCheckOut] = useState(null);
+export default function DatePicker({ defaultVal, onDateChange }) {
+  const [checkIn, setCheckIn] = useState(defaultVal[0] ?? null);
+  const [checkOut, setCheckOut] = useState(defaultVal[1] ?? null);
   const [selecting, setSelecting] = useState("checkin");
   const [open, setOpen] = useState(false);
 

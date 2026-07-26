@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { availability } from "../data";
+import { useEffect, useRef, useState } from "react";
+import { availability, basicInformation } from "../data";
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -25,11 +25,11 @@ function getMonthMeta(month) {
   return { name, year, monthNum, firstDay, totalDays };
 }
 
-function Calendar({ month, days, status }) {
+function Calendar({ ref, month, days, status }) {
   const { name, year, firstDay } = getMonthMeta(month);
 
   return (
-    <div className="calendar-panel">
+    <div className="calendar-panel" ref={ref}>
       <div className="calendar-header">
         <h3 className="calendar-title">
           {name} {year}
@@ -65,35 +65,38 @@ function Calendar({ month, days, status }) {
 
 export default function Availability() {
   const [selected, setSelected] = useState(null);
+  const calendarRef = useRef(null);
 
   const handleSelect = (index) => {
     setSelected(selected === index ? null : index);
   };
+
+  useEffect(() => {
+    if (selected !== null && calendarRef.current)
+      setTimeout(() => {
+        if (calendarRef.current)
+          calendarRef.current.scrollIntoView({
+            block: "center",
+            inline: "nearest",
+            behavior: "smooth",
+          });
+      }, 250);
+  }, [selected]);
 
   return (
     <section id="availability" className="availability">
       <div className="container">
         <div className="section-header">
           <p className="section-label">Availability</p>
-          <h2 className="section-title">
-            Plan Your <em>Escape</em>
-          </h2>
-          <p className="section-desc">
-            Secure your dates for an unforgettable coastal experience. Book
-            early for the best selection of available weeks.
-          </p>
         </div>
 
         <div className="pricing-card">
           <div className="pricing-header">
             <div className="pricing-price">
-              <span className="currency">$</span>
-              <span className="amount">285</span>
+              <span className="currency">€</span>
+              <span className="amount">{basicInformation.cost}</span>
               <span className="period">/ night</span>
             </div>
-            <p className="pricing-note">
-              Minimum 3-night stay &middot; Weekly discounts available
-            </p>
           </div>
 
           <div className="availability-grid">
@@ -118,6 +121,7 @@ export default function Availability() {
 
           {selected !== null && (
             <Calendar
+              ref={calendarRef}
               month={availability[selected].month}
               days={availability[selected].days}
               status={availability[selected].status}
