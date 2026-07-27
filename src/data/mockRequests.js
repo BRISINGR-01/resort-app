@@ -3,8 +3,8 @@ let requests = [
     id: "r1a2b3c4-1111-4aaa-bbbb-111111111111",
     created_at: "2026-07-20T08:00:00Z",
     client_name: "Anna Sokolova",
-    start_date: "2026-08-15",
-    end_date: "2026-08-20",
+    start_date: new Date("2026-08-15"),
+    end_date: new Date("2026-08-20"),
     guests_amount: 2,
     note: "Anniversary trip",
     denied: false,
@@ -13,8 +13,8 @@ let requests = [
     id: "r2b3c4d5-2222-4bbb-cccc-222222222222",
     created_at: "2026-07-22T12:00:00Z",
     client_name: "Dimitar Vangelov",
-    start_date: "2026-09-01",
-    end_date: "2026-09-05",
+    start_date: new Date("2026-09-01"),
+    end_date: new Date("2026-09-05"),
     guests_amount: 3,
     note: null,
     denied: false,
@@ -23,8 +23,8 @@ let requests = [
     id: "r3c4d5e6-3333-4ccc-dddd-333333333333",
     created_at: "2026-07-24T16:45:00Z",
     client_name: "Elena Markova",
-    start_date: "2026-07-28",
-    end_date: "2026-07-30",
+    start_date: new Date("2026-07-28"),
+    end_date: new Date("2026-07-30"),
     guests_amount: 1,
     note: "Business trip",
     denied: false,
@@ -49,9 +49,45 @@ const mockRequests = {
     return { data: [...requests], error: null };
   },
 
+  async getPending() {
+    return { data: requests.filter((r) => !r.denied), error: null };
+  },
+
+  async getRejected() {
+    return { data: requests.filter((r) => r.denied), error: null };
+  },
+
   async get(id) {
     const row = requests.find((r) => r.id === id);
-    return { data: row ? { ...row } : null, error: row ? null : { message: "Not found" } };
+    return {
+      data: row ? { ...row } : null,
+      error: row ? null : { message: "Not found" },
+    };
+  },
+
+  async create({
+    client_name,
+    start_date,
+    end_date,
+    guests_amount,
+    note = null,
+    phone = null,
+    email = null,
+  }) {
+    const row = {
+      id: uid(),
+      created_at: new Date().toISOString(),
+      client_name,
+      start_date,
+      end_date,
+      guests_amount,
+      note,
+      phone,
+      email,
+      denied: false,
+    };
+    requests.push(row);
+    return { data: { ...row }, error: null };
   },
 
   async accept(id) {

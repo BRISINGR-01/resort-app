@@ -39,6 +39,14 @@ const realRequests = {
     return supabase.from(TABLE).select("*").eq("id", id).single();
   },
 
+  async create({ client_name, start_date, end_date, guests_amount, note = null, phone = null, email = null }) {
+    return supabase
+      .from(TABLE)
+      .insert({ client_name, start_date, end_date, guests_amount, note, phone, email, denied: false })
+      .select()
+      .single();
+  },
+
   async accept(id) {
     const { data: request, error } = await supabase
       .from(TABLE)

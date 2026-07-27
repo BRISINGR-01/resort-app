@@ -3,18 +3,27 @@ import mockBookings from "./mockBookings";
 import buildAvailability from "./buildAvailability";
 
 const TABLE = "design-studio-green-life-bookings";
-const USE_MOCK = process.env.REACT_APP_TABLE_BOOKINGS === "mock";
+const USE_MOCK = process.env.USES_MOCK === "true";
 
 const realBookings = {
   async list() {
-    return supabase.from(TABLE).select("*").order("created_at", { ascending: false });
+    return supabase
+      .from(TABLE)
+      .select("*")
+      .order("created_at", { ascending: false });
   },
 
   async get(id) {
     return supabase.from(TABLE).select("*").eq("id", id).single();
   },
 
-  async create({ client_name, start_date, end_date, guests_amount, note = null }) {
+  async create({
+    client_name,
+    start_date,
+    end_date,
+    guests_amount,
+    note = null,
+  }) {
     return supabase
       .from(TABLE)
       .insert({ client_name, start_date, end_date, guests_amount, note })
