@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type UseFormSetValue } from "react-hook-form";
 import PhoneInput from "react-phone-input-2";
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { isValidPhoneNumber, type CountryCode } from "libphonenumber-js";
 import DatePicker from "./DatePicker";
 import { basicInformation } from "../data/basicInformation";
+import type { Booking, BookingPayload, SupabaseResponse } from "../data/types";
 
-function toDateString(date) {
+function toDateString(date: Date | null | undefined): string {
   if (!date) return "";
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -13,17 +14,34 @@ function toDateString(date) {
   return `${y}-${m}-${d}`;
 }
 
-function parseDate(str) {
+function parseDate(str: string | null | undefined): Date | null {
   if (!str) return null;
   const [y, m, d] = str.split("-").map(Number);
   return new Date(y, m - 1, d);
 }
 
-function parsePhone(phone) {
-  return phone && phone.replace(/^\+/, "");
+function parsePhone(phone: string | null | undefined): string {
+  return phone?.replace(/^\+/, "") ?? "";
 }
 
-const DEFAULTS = {
+interface DefaultValues {
+  client_name: string;
+  phone: string | null;
+  email: string;
+  start_date: Date | null;
+  end_date: Date | null;
+  guests_amount: number;
+  note: string;
+  dates: string;
+}
+
+function toDate(val: string | Date | null | undefined): Date | null {
+  if (!val) return null;
+  if (val instanceof Date) return val;
+  return parseDate(val);
+}
+
+const DEFAULTS: DefaultValues = {
   client_name: "",
   phone: "359",
   email: "",
@@ -31,7 +49,25 @@ const DEFAULTS = {
   end_date: null,
   guests_amount: 1,
   note: "",
+  dates: "",
 };
+
+export interface BookingFormProps {
+  idPrefix?: string;
+  nameLabel?: string;
+  submitLabel?: string;
+  className?: string;
+  showEmail?: boolean;
+  showPhone?: boolean;
+  showNote?: boolean;
+  noteTextarea?: boolean;
+  guestCounter?: boolean;
+  defaultValues?: Partial<Booking>;
+  onSubmit: (data: BookingPayload) => Promise<SupabaseResponse<any> | void>;
+  onDelete?: () => Promise<SupabaseResponse<any>>;
+  deleteLabel?: string;
+  status?: string;
+}
 
 export default function BookingForm({
   idPrefix = "bf",
@@ -43,10 +79,13 @@ export default function BookingForm({
   onDelete,
   deleteLabel = "Delete",
   status: externalStatus,
-}) {
+}: BookingFormProps) {
   const init = { ...DEFAULTS, ...defaultValues };
 
-  const [dates, setDates] = useState(() => [init.start_date, init.end_date]);
+  const [dates, setDates] = useState<[Date | null, Date | null]>(() => [
+    toDate(init.start_date),
+    toDate(init.end_date),
+  ]);
   const [phone, setPhone] = useState(parsePhone(init.phone));
   const [phoneCountry, setPhoneCountry] = useState("bg");
   const [internalStatus, setInternalStatus] = useState("idle");
@@ -78,7 +117,10 @@ export default function BookingForm({
     setPhoneCountry("bg");
     setValue("phone", parsed, { shouldValidate: true });
 
-    handleDateChange(defaultValues.start_date, defaultValues.end_date);
+    handleDateChange(
+      toDate(defaultValues?.start_date ?? null),
+      toDate(defaultValues?.end_date ?? null),
+    );
 
     setInternalStatus("idle");
     setError("");
@@ -87,9 +129,10 @@ export default function BookingForm({
 
   useEffect(() => {
     if (defaultValues) resetState();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultValues, reset, setValue]);
 
-  const handleDateChange = (ci, co) => {
+  const handleDateChange = (ci: Date | null, co: Date | null) => {
     setDates([ci, co]);
     setValue(
       "dates",
@@ -98,14 +141,19 @@ export default function BookingForm({
     );
   };
 
-  const submit = async (data) => {
+  const submit = async (data: any) => {
     setError("");
-    const startDate = toDateString(dates[0]);
-    const endDate = toDateString(dates[1]);
+    const startDate = dates[0];
+    const endDate = dates[1];
 
     if (!data.client_name?.trim()) return setError("Client name is required");
     if (!phone || phone.length < 5) return setError("Phone number is required");
-    if (!isValidPhoneNumber(`+${phone}`, phoneCountry.toUpperCase()))
+    if (
+      !isValidPhoneNumber(
+        `+${phone}`,
+        phoneCountry.toUpperCase() as CountryCode,
+      )
+    )
       return setError("Enter a valid phone number");
     if (!startDate) return setError("Check-in date is required");
     if (!endDate) return setError("Check-out date is required");
@@ -114,7 +162,7 @@ export default function BookingForm({
     if ((data.guests_amount || 0) < 1)
       return setError("At least 1 guest required");
 
-    const payload = {
+    const payload: BookingPayload = {
       client_name: data.client_name.trim(),
       start_date: startDate,
       end_date: endDate,
@@ -133,7 +181,7 @@ export default function BookingForm({
       } else {
         resetState();
       }
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message || "Something went wrong");
       if (externalStatus === undefined) setInternalStatus("idle");
     }
@@ -150,7 +198,7 @@ export default function BookingForm({
     }
   };
 
-  const p = (name) => `${idPrefix}-${name}`;
+  const p = (name: string) => `${idPrefix}-${name}`;
 
   return (
     <form
@@ -206,21 +254,27 @@ export default function BookingForm({
           <PhoneInput
             country={phoneCountry}
             value={phone}
-            onChange={(value, countryData) => {
+            onChange={(value: string, countryData: { countryCode: string }) => {
               setPhone(value);
               setPhoneCountry(countryData.countryCode);
               setValue("phone", value, { shouldValidate: true });
             }}
-            inputProps={{ name: "phone", id: p("phone") }}
-            className={errors.phone ? "input-error" : ""}
+            inputProps={{
+              name: "phone",
+              id: p("phone"),
+            }}
           />
           <input
             type="hidden"
             {...register("phone", {
               required: false,
-              validate: (value) =>
-                isValidPhoneNumber(`+${value}`, phoneCountry.toUpperCase()) ||
-                "Enter a valid phone number",
+              validate: (value: string | null) =>
+                value
+                  ? isValidPhoneNumber(
+                      `+${value}`,
+                      phoneCountry.toUpperCase() as CountryCode,
+                    ) || "Enter a valid phone number"
+                  : true,
             })}
             value={phone}
           />
@@ -243,7 +297,11 @@ export default function BookingForm({
 
       <div>
         <label>Dates</label>
-        <DatePicker defaultVal={dates} onDateChange={handleDateChange} />
+        <DatePicker
+          prevoiuslySelected={[init.start_date, init.end_date]}
+          defaultVal={dates}
+          onDateChange={handleDateChange}
+        />
         <input
           type="hidden"
           {...register("dates", {
@@ -336,7 +394,13 @@ export default function BookingForm({
   );
 }
 
-function GuestCounter({ id, value, setValue }) {
+interface GuestCounterProps {
+  id: string;
+  value: number;
+  setValue: UseFormSetValue<any>;
+}
+
+function GuestCounter({ value, setValue }: GuestCounterProps) {
   const count = value || 1;
 
   return (

@@ -1,12 +1,19 @@
+import { clearTime } from "../pages/admin/utils";
 import buildAvailability from "./buildAvailability";
+import type {
+  Booking,
+  BookingPayload,
+  SupabaseResponse,
+  AvailabilityMonth,
+} from "./types";
 
-let bookings = [
+let bookings: Booking[] = [
   {
     id: "b1e8f1a0-1234-4a5b-8c9d-0e1f2a3b4c5d",
     created_at: "2026-07-01T10:00:00Z",
     client_name: "Ivan Petrov",
-    start_date: new Date("2026-07-15"),
-    end_date: new Date("2026-07-20"),
+    start_date: new Date("2026-07-28"),
+    end_date: new Date("2026-07-30"),
     phone: "+3597589834",
     email: "i@petrov.com",
     guests_amount: 2,
@@ -32,7 +39,12 @@ let bookings = [
   },
 ];
 
-function uid() {
+bookings.forEach((b) => {
+  clearTime(b.start_date);
+  clearTime(b.end_date);
+});
+
+function uid(): string {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
     return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
@@ -40,11 +52,11 @@ function uid() {
 }
 
 const mockBookings = {
-  async list() {
+  async list(): Promise<SupabaseResponse<Booking[]>> {
     return { data: [...bookings], error: null };
   },
 
-  async get(id) {
+  async get(id: string): Promise<SupabaseResponse<Booking>> {
     const row = bookings.find((b) => b.id === id);
     return {
       data: row ? { ...row } : null,
@@ -58,13 +70,13 @@ const mockBookings = {
     end_date,
     guests_amount,
     note = null,
-  }) {
-    const row = {
+  }: BookingPayload): Promise<SupabaseResponse<Booking>> {
+    const row: Booking = {
       id: uid(),
       created_at: new Date().toISOString(),
       client_name,
-      start_date,
-      end_date,
+      start_date: clearTime(start_date),
+      end_date: clearTime(end_date),
       guests_amount,
       note,
     };
@@ -72,31 +84,37 @@ const mockBookings = {
     return { data: { ...row }, error: null };
   },
 
-  async update(id, patch) {
+  async update(
+    id: string,
+    patch: Partial<BookingPayload>,
+  ): Promise<SupabaseResponse<Booking>> {
     const idx = bookings.findIndex((b) => b.id === id);
     if (idx === -1) return { data: null, error: { message: "Not found" } };
     bookings[idx] = { ...bookings[idx], ...patch };
-    console.log(bookings, idx);
 
     return { data: { ...bookings[idx] }, error: null };
   },
 
-  async remove(id) {
+  async remove(id: string): Promise<SupabaseResponse<Booking>> {
     const idx = bookings.findIndex((b) => b.id === id);
     if (idx === -1) return { data: null, error: { message: "Not found" } };
     const [deleted] = bookings.splice(idx, 1);
     return { data: { ...deleted }, error: null };
   },
 
-  async query(filters) {
+  async query(
+    filters: Record<string, unknown>,
+  ): Promise<SupabaseResponse<Booking[]>> {
     let rows = [...bookings];
     for (const [key, value] of Object.entries(filters)) {
-      rows = rows.filter((r) => r[key] === value);
+      rows = rows.filter(
+        (r) => (r as unknown as Record<string, unknown>)[key] === value,
+      );
     }
     return { data: rows, error: null };
   },
 
-  async availability() {
+  async availability(): Promise<AvailabilityMonth[]> {
     return buildAvailability(bookings);
   },
 };

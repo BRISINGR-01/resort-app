@@ -1,33 +1,39 @@
 import { useEffect, useRef, useState } from "react";
 import bookings from "../data/bookings";
 import { basicInformation } from "../data/basicInformation";
+import CalendarGrid from "./CalendarGrid";
+import type { AvailabilityMonth, Status } from "../data/types";
 
-const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
-function getMonthMeta(month) {
+function getMonthMeta(month: string) {
   const [name, yearStr] = month.split(" ");
-  const monthNum = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ].indexOf(name);
-  const year = parseInt(yearStr);
-  const firstDay = new Date(year, monthNum, 1).getDay();
-  const totalDays = new Date(year, monthNum + 1, 0).getDate();
-  return { name, year, monthNum, firstDay, totalDays };
+  const monthNum = MONTH_NAMES.indexOf(name);
+  return { name, year: parseInt(yearStr), monthNum };
 }
 
-function Calendar({ ref, month, days, status }) {
-  const { name, year, firstDay } = getMonthMeta(month);
+interface CalendarPanelProps {
+  ref: React.RefObject<HTMLDivElement | null>;
+  month: string;
+  days: Status[];
+  status: "available" | "limited" | "booked";
+}
+
+const CalendarPanel = ({ ref, month, days, status }: CalendarPanelProps) => {
+  const { name, year, monthNum } = getMonthMeta(month);
 
   return (
     <div className="calendar-panel" ref={ref}>
@@ -42,38 +48,32 @@ function Calendar({ ref, month, days, status }) {
         </span>
       </div>
 
-      <div className="calendar-weekdays">
-        {DAY_LABELS.map((d) => (
-          <span key={d} className="cal-weekday">
-            {d}
-          </span>
-        ))}
-      </div>
-
-      <div className="calendar-days">
-        {Array.from({ length: firstDay }, (_, i) => (
-          <span key={`empty-${i}`} className="cal-day cal-day-empty"></span>
-        ))}
-        {days.map((status, i) => (
-          <span key={i} className={`cal-day cal-day-${status}`}>
-            <span className="cal-day-num">{i + 1}</span>
-          </span>
-        ))}
-      </div>
+      <CalendarGrid
+        year={year}
+        month={monthNum}
+        renderDay={(day) => {
+          const dayStatus = days[day - 1] || "available";
+          return (
+            <span className={`cal-day cal-day-${dayStatus}`}>
+              <span className="cal-day-num">{day}</span>
+            </span>
+          );
+        }}
+      />
     </div>
   );
-}
+};
 
 export default function Availability() {
-  const [selected, setSelected] = useState(null);
-  const [availability, setAvailability] = useState([]);
-  const calendarRef = useRef(null);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [availability, setAvailability] = useState<AvailabilityMonth[]>([]);
+  const calendarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bookings.availability().then(setAvailability);
   }, []);
 
-  const handleSelect = (index) => {
+  const handleSelect = (index: number) => {
     setSelected(selected === index ? null : index);
   };
 
@@ -126,7 +126,7 @@ export default function Availability() {
           </div>
 
           {selected !== null && availability[selected] && (
-            <Calendar
+            <CalendarPanel
               ref={calendarRef}
               month={availability[selected].month}
               days={availability[selected].days}

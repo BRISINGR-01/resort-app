@@ -1,15 +1,32 @@
-import { Booking, AvailabilityMonth } from "./types";
+import { type AvailabilityMonth, type Status } from "./types.ts";
 
 const MONTH_NAMES: string[] = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 function dateKey(y: number, m: number, d: number): string {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
-export default function buildAvailability(bookings: Booking[]): AvailabilityMonth[] {
+interface DateRange {
+  start_date: string | Date;
+  end_date: string | Date;
+}
+
+export default function buildAvailability(
+  bookings: DateRange[],
+): AvailabilityMonth[] {
   const months: AvailabilityMonth[] = [];
   const start = new Date(2026, 6, 1);
 
@@ -19,9 +36,9 @@ export default function buildAvailability(bookings: Booking[]): AvailabilityMont
     const monthNum = d.getMonth();
     const totalDays = new Date(year, monthNum + 1, 0).getDate();
 
-    const days: ("available" | "booked")[] = Array.from({ length: totalDays }, (_, day) => {
-      const key = dateKey(year, monthNum, day + 1);
-      const booked = bookings.some((b) => b.start_date <= key && b.end_date >= key);
+    const days: Status[] = Array.from({ length: totalDays }, (_, day) => {
+      const d = new Date(year, monthNum, day + 1);
+      const booked = bookings.some((b) => b.start_date <= d && b.end_date >= d);
       return booked ? "booked" : "available";
     });
 

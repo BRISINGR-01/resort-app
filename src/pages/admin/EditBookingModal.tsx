@@ -1,12 +1,20 @@
 import BookingForm from "../../components/BookingForm";
 import bookings from "../../data/bookings";
+import type { Booking, BookingPayload } from "../../data/types";
+
+interface EditBookingModalProps {
+  booking: Booking | null;
+  onClose: () => void;
+  onSaved: () => void;
+  onDeleted: () => void;
+}
 
 export default function EditBookingModal({
   booking,
   onClose,
   onSaved,
   onDeleted,
-}) {
+}: EditBookingModalProps) {
   if (!booking) return null;
 
   return (
@@ -29,7 +37,7 @@ export default function EditBookingModal({
             submitLabel="Save Changes"
             deleteLabel="Delete"
             defaultValues={booking}
-            onSubmit={async (data) => {
+            onSubmit={async (data: BookingPayload) => {
               const result = await bookings.update(booking.id, data);
 
               if (!result.error) onSaved();

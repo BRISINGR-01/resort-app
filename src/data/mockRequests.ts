@@ -1,4 +1,12 @@
-let requests = [
+import { clearTime } from "../pages/admin/utils";
+import type {
+  Request,
+  RequestPayload,
+  BookingPayload,
+  SupabaseResponse,
+} from "./types";
+
+let requests: Request[] = [
   {
     id: "r1a2b3c4-1111-4aaa-bbbb-111111111111",
     created_at: "2026-07-20T08:00:00Z",
@@ -31,33 +39,42 @@ let requests = [
   },
 ];
 
-let mockBookingsRef = null;
+requests.forEach((r) => {
+  clearTime(r.start_date);
+  clearTime(r.end_date);
+});
 
-function uid() {
+let mockBookingsRef: {
+  create: (booking: BookingPayload) => Promise<SupabaseResponse<unknown>>;
+} | null = null;
+
+function uid(): string {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
     return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
   });
 }
 
-function setBookingsRef(ref) {
+function setBookingsRef(ref: {
+  create: (booking: BookingPayload) => Promise<SupabaseResponse<unknown>>;
+}): void {
   mockBookingsRef = ref;
 }
 
 const mockRequests = {
-  async list() {
+  async list(): Promise<SupabaseResponse<Request[]>> {
     return { data: [...requests], error: null };
   },
 
-  async getPending() {
+  async getPending(): Promise<SupabaseResponse<Request[]>> {
     return { data: requests.filter((r) => !r.denied), error: null };
   },
 
-  async getRejected() {
+  async getRejected(): Promise<SupabaseResponse<Request[]>> {
     return { data: requests.filter((r) => r.denied), error: null };
   },
 
-  async get(id) {
+  async get(id: string): Promise<SupabaseResponse<Request>> {
     const row = requests.find((r) => r.id === id);
     return {
       data: row ? { ...row } : null,
@@ -73,8 +90,8 @@ const mockRequests = {
     note = null,
     phone = null,
     email = null,
-  }) {
-    const row = {
+  }: RequestPayload): Promise<SupabaseResponse<Request>> {
+    const row: Request = {
       id: uid(),
       created_at: new Date().toISOString(),
       client_name,
@@ -86,26 +103,32 @@ const mockRequests = {
       email,
       denied: false,
     };
+    clearTime(start_date);
+    clearTime(end_date);
     requests.push(row);
     return { data: { ...row }, error: null };
   },
 
-  async accept(id) {
+  async accept(id: string): Promise<SupabaseResponse<Request>> {
     const idx = requests.findIndex((r) => r.id === id);
     if (idx === -1) return { data: null, error: { message: "Not found" } };
 
-    const request = { ...requests[idx], denied: false };
+    const request: Request = { ...requests[idx], denied: false };
     requests[idx] = request;
 
     if (mockBookingsRef) {
       const { id: _id, created_at: _c, denied: _d, ...bookingFields } = request;
-      await mockBookingsRef.create(bookingFields);
+      await mockBookingsRef.create({
+        ...bookingFields,
+        start_date: bookingFields.start_date,
+        end_date: bookingFields.end_date,
+      });
     }
 
     return { data: { ...request }, error: null };
   },
 
-  async reject(id) {
+  async reject(id: string): Promise<SupabaseResponse<Request>> {
     const idx = requests.findIndex((r) => r.id === id);
     if (idx === -1) return { data: null, error: { message: "Not found" } };
     requests[idx] = { ...requests[idx], denied: true };

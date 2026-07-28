@@ -23,6 +23,11 @@ export function formatDate(date: Date): string {
   });
 }
 
+export function clearTime(date: Date): Date {
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
 export function formatDateTime(isoStr: string): string {
   const d = new Date(isoStr);
   return d.toLocaleDateString("en-GB", {

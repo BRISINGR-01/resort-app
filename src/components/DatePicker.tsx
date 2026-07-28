@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import bookings from "../data/bookings";
+import type { Status } from "../data/types";
 
 const MONTH_NAMES = [
   "January",
@@ -18,14 +19,33 @@ const MONTH_NAMES = [
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-function buildDateMap(availability) {
-  const map = {};
+interface AvailabilityEntry {
+  month: string;
+  days: Status[];
+}
+
+function buildDateMap(
+  availability: AvailabilityEntry[],
+  prevoiuslySelected?: [Date | null, Date | null],
+): Record<string, Status> {
+  const map: Record<string, Status> = {};
   for (const entry of availability) {
     const [monthName, yearStr] = entry.month.split(" ");
     const monthNum = MONTH_NAMES.indexOf(monthName);
     const year = parseInt(yearStr);
     entry.days.forEach((status, i) => {
       const d = new Date(year, monthNum, i + 1);
+
+      if (
+        prevoiuslySelected &&
+        prevoiuslySelected[0] &&
+        prevoiuslySelected[1] &&
+        d >= prevoiuslySelected[0] &&
+        d <= prevoiuslySelected[1]
+      ) {
+        status = "previously-selected";
+      }
+
       const key = d.toISOString().slice(0, 10);
       map[key] = status;
     });
@@ -34,11 +54,11 @@ function buildDateMap(availability) {
   return map;
 }
 
-function dateToKey(date) {
+function dateToKey(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-function formatShort(date) {
+function formatShort(date: Date): string {
   return date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -46,10 +66,19 @@ function formatShort(date) {
   });
 }
 
-function getMonthMeta(year, month) {
+function getMonthMeta(year: number, month: number) {
   const firstDay = new Date(year, month, 1).getDay();
   const totalDays = new Date(year, month + 1, 0).getDate();
   return { firstDay, totalDays };
+}
+
+interface CalendarModalProps {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: (checkIn: Date | null, checkOut: Date | null) => void;
+  initialCheckIn: Date | null;
+  initialCheckOut: Date | null;
+  dateMap: Record<string, Status>;
 }
 
 function CalendarModal({
@@ -59,15 +88,15 @@ function CalendarModal({
   initialCheckIn,
   initialCheckOut,
   dateMap,
-}) {
+}: CalendarModalProps) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [viewYear, setViewYear] = useState(today.getFullYear());
-  const [checkIn, setCheckIn] = useState(initialCheckIn);
-  const [checkOut, setCheckOut] = useState(initialCheckOut);
-  const [selecting, setSelecting] = useState("checkin");
+  const [checkIn, setCheckIn] = useState<Date | null>(initialCheckIn);
+  const [checkOut, setCheckOut] = useState<Date | null>(initialCheckOut);
+  const [selecting, setSelecting] = useState<"checkin" | "checkout">("checkin");
 
   useEffect(() => {
     if (open) {
@@ -105,7 +134,7 @@ function CalendarModal({
     });
   };
 
-  const handleDayClick = (day) => {
+  const handleDayClick = (day: number) => {
     const date = new Date(viewYear, viewMonth, day);
     date.setHours(0, 0, 0, 0);
     const key = dateToKey(date);
@@ -117,7 +146,7 @@ function CalendarModal({
       setCheckOut(null);
       setSelecting("checkout");
     } else {
-      if (date <= checkIn) {
+      if (date <= checkIn!) {
         setCheckIn(date);
         setCheckOut(null);
         setSelecting("checkout");
@@ -133,18 +162,18 @@ function CalendarModal({
     onClose();
   };
 
-  const isPast = (day) => {
+  const isPast = (day: number) => {
     const d = new Date(viewYear, viewMonth, day);
     d.setHours(0, 0, 0, 0);
     return d < today;
   };
 
-  const isBooked = (day) => {
+  const isBooked = (day: number) => {
     const key = dateToKey(new Date(viewYear, viewMonth, day));
-    return key && dateMap[key] === "booked";
+    return !!(key && dateMap[key] === "booked");
   };
 
-  const isSelected = (day) => {
+  const isSelected = (day: number) => {
     const d = new Date(viewYear, viewMonth, day);
     d.setHours(0, 0, 0, 0);
     if (checkIn && d.getTime() === checkIn.getTime()) return true;
@@ -152,16 +181,16 @@ function CalendarModal({
     return false;
   };
 
-  const isInRange = (day) => {
+  const isInRange = (day: number) => {
     if (!checkIn || !checkOut) return false;
     const d = new Date(viewYear, viewMonth, day);
     d.setHours(0, 0, 0, 0);
     return d > checkIn && d < checkOut;
   };
 
-  const isLimited = (day) => {
+  const wasSelected = (day: number) => {
     const d = new Date(viewYear, viewMonth, day);
-    return dateMap[dateToKey(d)] === "limited";
+    return dateMap[dateToKey(d)] === "previously-selected";
   };
 
   if (!open) return null;
@@ -202,6 +231,7 @@ function CalendarModal({
           <button
             className="cdp-nav-btn"
             onClick={goToPrev}
+            type="button"
             aria-label="Previous month"
           >
             <svg
@@ -224,6 +254,7 @@ function CalendarModal({
             className="cdp-nav-btn"
             onClick={goToNext}
             aria-label="Next month"
+            type="button"
           >
             <svg
               width="18"
@@ -255,17 +286,17 @@ function CalendarModal({
           {Array.from({ length: totalDays }, (_, i) => {
             const day = i + 1;
             const past = isPast(day);
-            const booked = isBooked(day);
-            const disabled = past || booked;
             const selected = isSelected(day);
             const inRange = isInRange(day);
-            const limited = isLimited(day);
+            const previouslySelected = wasSelected(day);
+            const booked = isBooked(day) && !previouslySelected;
+            const disabled = (past || booked) && !previouslySelected;
 
             let cls = "cdp-day";
             if (disabled) cls += " cdp-day-disabled";
             if (selected) cls += " cdp-day-selected";
             if (inRange) cls += " cdp-day-in-range";
-            if (limited && !disabled) cls += " cdp-day-limited";
+            if (previouslySelected) cls += " cdp-day-previously-selected";
 
             return (
               <button
@@ -283,16 +314,6 @@ function CalendarModal({
 
         <div className="cdp-actions">
           <button
-            className="cdp-btn cdp-btn-secondary"
-            onClick={() => {
-              setCheckIn(null);
-              setCheckOut(null);
-              setSelecting("checkin");
-            }}
-          >
-            Clear
-          </button>
-          <button
             className="cdp-btn cdp-btn-primary"
             onClick={handleConfirm}
             disabled={!checkIn}
@@ -305,23 +326,37 @@ function CalendarModal({
   );
 }
 
-export default function DatePicker({ defaultVal, onDateChange }) {
-  const [checkIn, setCheckIn] = useState(defaultVal[0] ?? null);
-  const [checkOut, setCheckOut] = useState(defaultVal[1] ?? null);
+interface DatePickerProps {
+  defaultVal: (Date | null)[];
+  onDateChange: (checkIn: Date | null, checkOut: Date | null) => void;
+  prevoiuslySelected?: [Date | null, Date | null];
+}
+
+export default function DatePicker({
+  defaultVal,
+  prevoiuslySelected,
+  onDateChange,
+}: DatePickerProps) {
+  const [checkIn, setCheckIn] = useState<Date | null>(defaultVal[0] ?? null);
+  const [checkOut, setCheckOut] = useState<Date | null>(defaultVal[1] ?? null);
   const [open, setOpen] = useState(false);
-  const [dateMap, setDateMap] = useState({});
+  const [dateMap, setDateMap] = useState<Record<string, Status>>({});
 
   useEffect(() => {
-    bookings.availability().then((avail) => setDateMap(buildDateMap(avail)));
+    bookings
+      .availability()
+      .then((avail: AvailabilityEntry[]) =>
+        setDateMap(buildDateMap(avail, prevoiuslySelected)),
+      );
   }, []);
 
-  const handleConfirm = (ci, co) => {
+  const handleConfirm = (ci: Date | null, co: Date | null) => {
     setCheckIn(ci);
     setCheckOut(co);
     onDateChange?.(ci, co);
   };
 
-  const clearDates = (e) => {
+  const clearDates = (e: React.MouseEvent) => {
     e.stopPropagation();
     setCheckIn(null);
     setCheckOut(null);

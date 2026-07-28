@@ -2,11 +2,14 @@ import { useState } from "react";
 import BookingForm from "./BookingForm";
 import { basicInformation } from "../data/basicInformation";
 import requests from "../data/requests";
+import type { BookingPayload, SupabaseResponse } from "../data/types";
 
 export default function Contact() {
   const [status, setStatus] = useState("idle");
 
-  const handleSubmit = async (data) => {
+  const handleSubmit = async (
+    data: BookingPayload,
+  ): Promise<SupabaseResponse<any> | void> => {
     setStatus("submitting");
     const result = await requests.create({
       client_name: data.client_name,
@@ -94,7 +97,8 @@ export default function Contact() {
                   </svg>
                 </div>
                 <div>
-                  <h4>Phone</h4>
+                  {/* {todo: visits per day, calendar price change} */}
+                  <h4>Phone (+ Viber)</h4>
                   <a
                     href={
                       "tel:" + basicInformation.contact.phone.replace(" ", "")

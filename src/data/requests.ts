@@ -2,24 +2,24 @@ import supabase from "./supabase";
 import mockRequests from "./mockRequests";
 import mockBookings from "./mockBookings";
 import { setBookingsRef } from "./mockRequests";
+import type { Request, RequestPayload, SupabaseResponse } from "./types";
 
 const TABLE = "design-studio-green-life-requests";
 const BOOKINGS_TABLE = "design-studio-green-life-bookings";
-const USE_MOCK = process.env.REACT_APP_TABLE_REQUESTS === "mock";
 
-if (USE_MOCK) {
+if (import.meta.env.DEV) {
   setBookingsRef(mockBookings);
 }
 
 const realRequests = {
-  async list() {
+  async list(): Promise<SupabaseResponse<Request[]>> {
     return supabase
       .from(TABLE)
       .select("*")
       .order("created_at", { ascending: false });
   },
 
-  async getPending() {
+  async getPending(): Promise<SupabaseResponse<Request[]>> {
     return supabase
       .from(TABLE)
       .select("*")
@@ -27,7 +27,7 @@ const realRequests = {
       .order("created_at", { ascending: false });
   },
 
-  async getRejected() {
+  async getRejected(): Promise<SupabaseResponse<Request[]>> {
     return supabase
       .from(TABLE)
       .select("*")
@@ -35,19 +35,36 @@ const realRequests = {
       .order("created_at", { ascending: false });
   },
 
-  async get(id) {
+  async get(id: string): Promise<SupabaseResponse<Request>> {
     return supabase.from(TABLE).select("*").eq("id", id).single();
   },
 
-  async create({ client_name, start_date, end_date, guests_amount, note = null, phone = null, email = null }) {
+  async create({
+    client_name,
+    start_date,
+    end_date,
+    guests_amount,
+    note = null,
+    phone = null,
+    email = null,
+  }: RequestPayload): Promise<SupabaseResponse<Request>> {
     return supabase
       .from(TABLE)
-      .insert({ client_name, start_date, end_date, guests_amount, note, phone, email, denied: false })
+      .insert({
+        client_name,
+        start_date,
+        end_date,
+        guests_amount,
+        note,
+        phone,
+        email,
+        denied: false,
+      })
       .select()
       .single();
   },
 
-  async accept(id) {
+  async accept(id: string): Promise<SupabaseResponse<Request>> {
     const { data: request, error } = await supabase
       .from(TABLE)
       .update({ denied: false })
@@ -65,7 +82,7 @@ const realRequests = {
       .single();
   },
 
-  async reject(id) {
+  async reject(id: string): Promise<SupabaseResponse<Request>> {
     return supabase
       .from(TABLE)
       .update({ denied: true })
@@ -75,6 +92,6 @@ const realRequests = {
   },
 };
 
-const requests = USE_MOCK ? mockRequests : realRequests;
+const requests = import.meta.env.DEV ? mockRequests : realRequests;
 
 export default requests;

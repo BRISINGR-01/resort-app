@@ -2,8 +2,14 @@ import { useState } from "react";
 import { galleryImages } from "../data/galleryImages";
 import { text } from "../data/text";
 
+interface GalleryImage {
+  url: string;
+  alt: string;
+  caption: string;
+}
+
 export default function Gallery() {
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState<GalleryImage | null>(null);
 
   return (
     <section id="gallery" className="gallery">

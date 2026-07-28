@@ -1,16 +1,17 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import bookings from "../../data/bookings";
-import {
-  MONTH_NAMES,
-  DAY_LABELS,
-  formatDate,
-  dateKey,
-  getDaysInMonth,
-  getFirstDayOfMonth,
-} from "./utils";
+import { MONTH_NAMES, DAY_LABELS, formatDate } from "./utils";
+import CalendarGrid from "../../components/CalendarGrid";
 import EditBookingModal from "./EditBookingModal";
+import type { Booking } from "../../data/types";
 
-const VISITOR_COLORS = [
+interface VisitorColor {
+  bg: string;
+  bar: string;
+  dot: string;
+}
+
+const VISITOR_COLORS: VisitorColor[] = [
   { bg: "#e8f0e4", bar: "#5a8a4e", dot: "#5a8a4e" },
   { bg: "#e4ecf5", bar: "#4a6fa5", dot: "#4a6fa5" },
   { bg: "#f5ece4", bar: "#a07040", dot: "#a07040" },
@@ -22,12 +23,12 @@ const VISITOR_COLORS = [
 ];
 
 export default function CalendarTab() {
-  const [allBookings, setAllBookings] = useState([]);
+  const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const now = new Date();
   const [viewMonth, setViewMonth] = useState(now.getMonth());
   const [viewYear, setViewYear] = useState(now.getFullYear());
-  const [editing, setEditing] = useState(null);
+  const [editing, setEditing] = useState<Booking | null>(null);
 
   const loadBookings = useCallback(() => {
     bookings.list().then(({ data }) => {
@@ -40,8 +41,7 @@ export default function CalendarTab() {
     loadBookings();
   }, [loadBookings]);
 
-  const daysInMonth = getDaysInMonth(viewYear, viewMonth);
-  const firstDay = getFirstDayOfMonth(viewYear, viewMonth);
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
 
   const bookingsInView = allBookings.filter((b) => {
     const monthStart = new Date(viewYear, viewMonth, 1);
@@ -50,7 +50,7 @@ export default function CalendarTab() {
   });
 
   const colorMap = useMemo(() => {
-    const map = {};
+    const map: Record<string, VisitorColor> = {};
     bookingsInView.forEach((b, i) => {
       map[b.id] = VISITOR_COLORS[i % VISITOR_COLORS.length];
     });
@@ -81,55 +81,17 @@ export default function CalendarTab() {
   return (
     <div className="admin-tab-content">
       <div className="admin-calendar">
-        <div className="admin-calendar-nav">
-          <button className="admin-btn admin-btn-nav" onClick={prevMonth}>
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h2 className="admin-calendar-title">
-            {MONTH_NAMES[viewMonth]} {viewYear}
-          </h2>
-          <button className="admin-btn admin-btn-nav" onClick={nextMonth}>
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="admin-calendar-weekdays">
-          {DAY_LABELS.map((d) => (
-            <span key={d} className="admin-cal-weekday">
-              {d}
-            </span>
-          ))}
-        </div>
-
-        <div className="admin-calendar-grid">
-          {Array.from({ length: firstDay }, (_, i) => (
-            <div
-              key={`empty-${i}`}
-              className="admin-cal-cell admin-cal-empty"
-            />
-          ))}
-          {Array.from({ length: daysInMonth }, (_, i) => {
-            const day = i + 1;
+        <CalendarGrid
+          year={viewYear}
+          month={viewMonth}
+          dayLabels={DAY_LABELS}
+          weekStart="mon"
+          showNav
+          title={`${MONTH_NAMES[viewMonth]} ${viewYear}`}
+          onPrev={prevMonth}
+          onNext={nextMonth}
+          renderDay={(day) => {
             const dayAsDate = new Date(viewYear, viewMonth, day);
-
             const bookingsOnDay = bookingsInView.filter(
               (b) => b.start_date <= dayAsDate && b.end_date >= dayAsDate,
             );
@@ -140,15 +102,15 @@ export default function CalendarTab() {
             const primary = bookingsOnDay[0]
               ? colorMap[bookingsOnDay[0].id]
               : null;
-
             const isBooked = bookingsOnDay.length > 0;
 
             return (
               <div
-                key={day}
                 className={`admin-cal-cell ${isToday ? "admin-cal-today" : ""} ${isBooked ? "admin-cal-booked" : ""}`}
                 style={primary ? { backgroundColor: primary.bg } : undefined}
-                onClick={isBooked ? () => setEditing(bookingsOnDay[0]) : null}
+                onClick={
+                  isBooked ? () => setEditing(bookingsOnDay[0]) : undefined
+                }
               >
                 <span className="admin-cal-day-num">{day}</span>
                 {isBooked && (
@@ -172,8 +134,8 @@ export default function CalendarTab() {
                 )}
               </div>
             );
-          })}
-        </div>
+          }}
+        />
 
         {bookingsInView.length > 0 && (
           <div className="admin-calendar-legend">
@@ -189,7 +151,8 @@ export default function CalendarTab() {
                     />
                     <span className="admin-legend-name">{b.client_name}</span>
                     <span className="admin-legend-dates">
-                      {formatDate(b.start_date)} — {formatDate(b.end_date)}
+                      {formatDate(b.start_date as Date)} —{" "}
+                      {formatDate(b.end_date as Date)}
                     </span>
                     <button
                       className="admin-legend-edit"

@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import requests from "../../data/requests";
 import { formatDate, formatDateTime } from "./utils";
+import type { Request } from "../../data/types";
 
 export default function HistoryTab() {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
-  const [actingId, setActingId] = useState(null);
+  const [actingId, setActingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -18,7 +19,7 @@ export default function HistoryTab() {
     load();
   }, [load]);
 
-  const handleApprove = async (id) => {
+  const handleApprove = async (id: string) => {
     setActingId(id);
     await requests.accept(id);
     setItems((prev) =>
@@ -66,13 +67,13 @@ export default function HistoryTab() {
                 <div className="admin-detail">
                   <span className="admin-detail-label">Check-in</span>
                   <span className="admin-detail-value">
-                    {formatDate(r.start_date)}
+                    {formatDate(r.start_date as Date)}
                   </span>
                 </div>
                 <div className="admin-detail">
                   <span className="admin-detail-label">Check-out</span>
                   <span className="admin-detail-value">
-                    {formatDate(r.end_date)}
+                    {formatDate(r.end_date as Date)}
                   </span>
                 </div>
                 <div className="admin-detail">
