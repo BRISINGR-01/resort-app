@@ -1,142 +1,172 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import bookings from "../data/bookings";
-import CalendarGrid from "./CalendarGrid";
+import {
+  Calendar,
+  type CalendarMonth,
+} from "@demark-pro/react-booking-calendar";
+import "@demark-pro/react-booking-calendar/dist/react-booking-calendar.css";
 import type { AvailabilityMonth, Status } from "../data/types";
 import { useTranslation } from "react-i18next";
 import { useMonthNames } from "../pages/admin/utils";
+import useInView from "../hooks/useInView";
 
-function getMonthMeta(month: string, monthNames: string[]) {
-  const [name, yearStr] = month.split(" ");
-  const monthNum = monthNames.indexOf(name);
-  return { name, year: parseInt(yearStr), monthNum };
+function daysToReserved(days: Status[], year: number, month: number) {
+  const reserved: { startDate: Date; endDate: Date; color: string }[] = [];
+  let start: number | null = null;
+  for (let i = 0; i < days.length; i++) {
+    if (days[i] === "booked" && start === null) start = i + 1;
+    else if (days[i] !== "booked" && start !== null) {
+      reserved.push({
+        startDate: new Date(year, month, start),
+        endDate: new Date(year, month, i + 1),
+        color: "#fce4ec",
+      });
+      start = null;
+    }
+  }
+  if (start !== null) {
+    reserved.push({
+      startDate: new Date(year, month, start),
+      endDate: new Date(year, month, days.length + 1),
+      color: "#fce4ec",
+    });
+  }
+  return reserved;
 }
-
-interface CalendarPanelProps {
-  ref: React.RefObject<HTMLDivElement | null>;
-  month: string;
-  days: Status[];
-  status: "available" | "limited" | "booked";
-  monthNames: string[];
-}
-
-const CalendarPanel = ({
-  ref,
-  month,
-  days,
-  status,
-  monthNames,
-}: CalendarPanelProps) => {
-  const { name, year, monthNum } = getMonthMeta(month, monthNames);
-
-  return (
-    <div className="calendar-panel" ref={ref}>
-      <div className="calendar-header">
-        <h3 className="calendar-title">
-          {name} {year}
-        </h3>
-        <span className={`avail-badge badge-${status}`}>
-          {status === "available" && "Open"}
-          {status === "limited" && "Limited"}
-          {status === "booked" && "Mostly Booked"}
-        </span>
-      </div>
-
-      <CalendarGrid
-        year={year}
-        month={monthNum}
-        renderDay={(day) => {
-          const dayStatus = days[day - 1] || "available";
-          return (
-            <span className={`cal-day cal-day-${dayStatus}`}>
-              <span className="cal-day-num">{day}</span>
-            </span>
-          );
-        }}
-      />
-    </div>
-  );
-};
 
 export default function Availability() {
   const monthNames = useMonthNames();
-  const [selected, setSelected] = useState<number | null>(null);
   const [availability, setAvailability] = useState<AvailabilityMonth[]>([]);
-  const calendarRef = useRef<HTMLDivElement>(null);
+  const [selectedYear, setSelectedYear] = useState<number>(0);
+  const [selectedMonth, setSelectedMonth] = useState<CalendarMonth>(0);
   const { t } = useTranslation();
+  const { ref: cardRef, inView: cardInView } = useInView();
 
   useEffect(() => {
-    bookings.availability(monthNames).then(setAvailability);
+    bookings.availability(monthNames).then((data) => {
+      setAvailability(data);
+      if (data.length > 0) {
+        const [name, yearStr] = data[0].month.split(" ");
+        setSelectedYear(parseInt(yearStr));
+        setSelectedMonth(monthNames.indexOf(name) as CalendarMonth);
+      }
+    });
   }, []);
 
-  const handleSelect = (index: number) => {
-    setSelected(selected === index ? null : index);
-  };
+  const years = [
+    ...new Set(
+      availability.map((a) => {
+        const [, yearStr] = a.month.split(" ");
+        return parseInt(yearStr);
+      }),
+    ),
+  ];
 
-  useEffect(() => {
-    if (selected !== null && calendarRef.current)
-      setTimeout(() => {
-        if (calendarRef.current)
-          calendarRef.current.scrollIntoView({
-            block: "center",
-            inline: "nearest",
-            behavior: "smooth",
-          });
-      }, 250);
-  }, [selected]);
+  const monthsForYear = availability.filter((a) =>
+    a.month.endsWith(` ${selectedYear}`),
+  );
+
+  const selectedData = availability.find(
+    (a) => a.month === `${monthNames[selectedMonth]} ${selectedYear}`,
+  );
+
+  const reserved = useMemo(
+    () =>
+      selectedData
+        ? daysToReserved(selectedData.days, selectedYear, selectedMonth)
+        : [],
+    [selectedData, selectedYear, selectedMonth],
+  );
 
   return (
     <section id="availability" className="availability">
       <div className="container">
-        <div className="section-header">
-          <p className="section-label">{t("availability", "Availability")}</p>
-        </div>
-
-        <div className="pricing-card">
-          {/* <div className="pricing-header">
-            <div className="pricing-price">
-              <span className="currency">{"\u20AC"}</span>
-              <span className="amount">{100}</span>
-              <span className="period">/ night</span>
-            </div>
-          </div> */}
-
-          <div className="availability-grid">
-            {availability.map((item, i) => (
-              <div
-                key={i}
-                className={`avail-item avail-${item.status} ${selected === i ? "avail-selected" : ""}`}
-                onClick={() => handleSelect(i)}
+        <div
+          ref={cardRef}
+          className={`pricing-card animate-fade-in-up ${cardInView ? "visible" : ""}`}
+        >
+          <div className="avail-controls">
+            <div className="avail-select-group">
+              <select
+                value={selectedYear}
+                onChange={(e) => {
+                  const y = parseInt(e.target.value);
+                  setSelectedYear(y);
+                  const first = availability.find((a) =>
+                    a.month.endsWith(` ${y}`),
+                  );
+                  if (first) {
+                    const [name] = first.month.split(" ");
+                    setSelectedMonth(monthNames.indexOf(name) as CalendarMonth);
+                  }
+                }}
+                className="avail-select"
               >
-                <span className="avail-month">{item.month}</span>
-                <span className={`avail-badge badge-${item.status}`}>
-                  {item.status === "available" &&
-                    t("spotsSpotsOpen", "{{spots}} spots open", {
-                      spots: item.spots,
-                    })}
-                  {item.status === "limited" &&
-                    t("spotsSpotsLeft", "{{spots}} spots left", {
-                      spots: item.spots,
-                    })}
-                  {item.status === "booked" && "Fully Booked"}
-                </span>
-                <span className="avail-click-hint">
-                  {selected === i
-                    ? t("clickToClose", "Click to close")
-                    : t("clickToViewCalendar", "Click to view calendar")}
-                </span>
-              </div>
-            ))}
+                {years.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={selectedMonth}
+                onChange={(e) =>
+                  setSelectedMonth(parseInt(e.target.value) as CalendarMonth)
+                }
+                className="avail-select"
+              >
+                {monthNames.map((m, i) => {
+                  const disabled = !monthsForYear.some((a) =>
+                    a.month.startsWith(m),
+                  );
+                  return (
+                    <option key={i} value={i} disabled={disabled}>
+                      {m}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
           </div>
 
-          {selected !== null && availability[selected] && (
-            <CalendarPanel
-              monthNames={monthNames}
-              ref={calendarRef}
-              month={availability[selected].month}
-              days={availability[selected].days}
-              status={availability[selected].status}
-            />
-          )}
+          <div className="avail-calendar">
+            {selectedData ? (
+              <Calendar
+                className="avail-booking-calendar"
+                selected={[]}
+                reserved={reserved}
+                onChange={() => {}}
+                month={selectedMonth}
+                year={selectedYear}
+                onMonthChange={(m, y) => {
+                  setSelectedMonth(m);
+                  setSelectedYear(y);
+                }}
+                options={{ weekStartsOn: 0, useAttributes: true }}
+                disabled={() => true}
+                classNames={{
+                  MonthArrowBack: "avail-cal-arrow",
+                  MonthArrowNext: "avail-cal-arrow",
+                  MonthContent: "avail-cal-month",
+                }}
+              />
+            ) : (
+              <p className="avail-empty">
+                {t("noData", "No availability data")}
+              </p>
+            )}
+          </div>
+
+          <div className="calendar-legend">
+            <div className="cal-legend-item">
+              <span className="cal-legend-swatch swatch-available" />
+              {t("available", "Available")}
+            </div>
+            <div className="cal-legend-item">
+              <span className="cal-legend-swatch swatch-booked" />
+              {t("booked", "Booked")}
+            </div>
+          </div>
         </div>
       </div>
     </section>

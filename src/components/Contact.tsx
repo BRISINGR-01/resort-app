@@ -4,11 +4,13 @@ import requests from "../data/requests";
 import type { BookingPayload, SupabaseResponse } from "../data/types";
 import { useTranslation } from "react-i18next";
 import useInfo from "../data/information";
+import useInView from "../hooks/useInView";
 
 export default function Contact() {
   const { t } = useTranslation();
   const [status, setStatus] = useState("idle");
   const { contact } = useInfo();
+  const { ref: infoRef, inView: infoInView } = useInView();
 
   const handleSubmit = async (
     data: BookingPayload,
@@ -35,7 +37,7 @@ export default function Contact() {
     <section id="contact" className="contact">
       <div className="container">
         <div className="contact-grid">
-          <div className="contact-info">
+          <div ref={infoRef} className={`contact-info animate-fade-in-up ${infoInView ? "visible" : ""}`}>
             <p className="section-label">{t("getInTouch", "Get in Touch")}</p>
             <p className="contact-text">
               {t(

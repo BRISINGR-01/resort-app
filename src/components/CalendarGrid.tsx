@@ -1,11 +1,9 @@
 import { useMemo } from "react";
 
-const DEFAULT_DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
 export interface CalendarGridProps {
   year: number;
   month: number;
-  dayLabels?: string[];
+  dayLabels: string[];
   weekStart?: "sun" | "mon";
   showNav?: boolean;
   title?: string;
@@ -17,7 +15,7 @@ export interface CalendarGridProps {
 export default function CalendarGrid({
   year,
   month,
-  dayLabels = DEFAULT_DAY_LABELS,
+  dayLabels,
   weekStart = "sun",
   showNav = false,
   title,

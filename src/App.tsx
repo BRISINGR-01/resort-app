@@ -2,10 +2,10 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import About from './components/About';
-import Gallery from './components/Gallery';
-import Availability from './components/Availability';
-import Contact from './components/Contact';
 import Footer from './components/Footer';
+import GalleryPage from './pages/GalleryPage';
+import ReservationPage from './pages/ReservationPage';
+import ContactPage from './pages/ContactPage';
 import Admin from './pages/Admin';
 import 'react-phone-input-2/lib/style.css';
 import './App.css';
@@ -16,9 +16,6 @@ function Home() {
       <Navbar />
       <Hero />
       <About />
-      <Gallery />
-      <Availability />
-      <Contact />
       <Footer />
     </>
   );
@@ -30,6 +27,9 @@ function App() {
       <div className="App">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/gallery" element={<GalleryPage />} />
+          <Route path="/reservation" element={<ReservationPage />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>
       </div>

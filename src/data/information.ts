@@ -121,16 +121,15 @@ export default function useInfo() {
         label: t("fullKitchen", "Full Kitchen"),
       },
       { icon: "icons/wifi.svg", label: t("wifi", "WiFi") },
+      { icon: "icons/pool.svg", label: t("pool", "Pool") },
+      { icon: "icons/iron.svg", label: t("iron", "Iron/Hair dryer") },
+      { icon: "icons/tv.svg", label: t("tv", "TV") },
+      { icon: "icons/ac.svg", label: t("ac", "AC") },
       {
-        icon: "icons/parking.svg",
-        label: t("freeParking", "Free Parking"),
+        icon: "icons/washing-machine.svg",
+        label: t("washingMachine", "Washing Machine"),
       },
-      { icon: "icons/pool.svg", label: t("poolAccess", "Pool Access") },
-      { icon: "🧖", label: t("spaWellness", "Spa & Wellness") },
-      { icon: "🏖️", label: t("beach", "Beach") },
-      { icon: "👕", label: t("inunitLaundry", "In-Unit Laundry") },
     ],
   };
 }
-// пералня, утия, сешоар, климатик, утия
 // фонт, слоган, страници

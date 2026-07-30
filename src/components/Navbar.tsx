@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import useInfo from "../data/information";
 
@@ -23,7 +24,7 @@ export default function Navbar() {
   return (
     <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
       <div className="nav-container">
-        <a href="#home" className="nav-logo">
+        <Link to="/" className="nav-logo" onClick={() => setMenuOpen(false)}>
           <span className="logo-icon">
             <img
               style={{ height: "80%", transform: "translateY(-3px)" }}
@@ -32,7 +33,7 @@ export default function Navbar() {
             />
           </span>
           <span className="logo-text">{homePage.name}</span>
-        </a>
+        </Link>
 
         <button
           className={`nav-toggle ${menuOpen ? "active" : ""}`}
@@ -46,24 +47,24 @@ export default function Navbar() {
 
         <ul className={`nav-links ${menuOpen ? "active" : ""}`}>
           <li>
-            <a href="#home" onClick={() => setMenuOpen(false)}>
+            <Link to="/" onClick={() => setMenuOpen(false)}>
               {t("home", "Home")}
-            </a>
+            </Link>
           </li>
           <li>
-            <a href="#gallery" onClick={() => setMenuOpen(false)}>
+            <Link to="/gallery" onClick={() => setMenuOpen(false)}>
               {t("gallery", "Gallery")}
-            </a>
+            </Link>
           </li>
           <li>
-            <a href="#availability" onClick={() => setMenuOpen(false)}>
+            <Link to="/reservation" onClick={() => setMenuOpen(false)}>
               {t("availability", "Availability")}
-            </a>
+            </Link>
           </li>
           <li>
-            <a href="#contact" onClick={() => setMenuOpen(false)}>
+            <Link to="/contact" onClick={() => setMenuOpen(false)}>
               {t("contact", "Contact")}
-            </a>
+            </Link>
           </li>
           <button className="lang-switch" onClick={toggleLanguage}>
             <img

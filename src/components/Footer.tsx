@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import useInfo from "../data/information";
 
@@ -20,16 +21,16 @@ export default function Footer() {
             <h4>{t("quickLinks", "Quick Links")}</h4>
             <ul>
               <li>
-                <a href="#home">{t("home", "Home")}</a>
+                <Link to="/">{t("home", "Home")}</Link>
               </li>
               <li>
-                <a href="#gallery">{t("gallery", "Gallery")}</a>
+                <Link to="/gallery">{t("gallery", "Gallery")}</Link>
               </li>
               <li>
-                <a href="#availability">{t("availability", "Availability")}</a>
+                <Link to="/reservation">{t("availability", "Availability")}</Link>
               </li>
               <li>
-                <a href="#contact">{t("contact", "Contact")}</a>
+                <Link to="/contact">{t("contact", "Contact")}</Link>
               </li>
             </ul>
           </div>
