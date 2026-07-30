@@ -7,7 +7,6 @@ interface DateRange {
 
 export default function buildAvailability(
   bookings: DateRange[],
-  monthNames: string[],
 ): AvailabilityMonth[] {
   const months: AvailabilityMonth[] = [];
   const start = new Date(2026, 6, 1);
@@ -24,17 +23,9 @@ export default function buildAvailability(
       return booked ? "booked" : "available";
     });
 
-    const availableDays = days.filter((d) => d === "available").length;
-
     months.push({
-      month: `${monthNames[monthNum]} ${year}`,
-      status:
-        availableDays === 0
-          ? "booked"
-          : availableDays < 10
-            ? "limited"
-            : "available",
-      spots: availableDays,
+      month: monthNum,
+      year,
       days,
     });
   }

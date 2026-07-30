@@ -5,6 +5,7 @@ import CalendarGrid from "../../components/CalendarGrid";
 import EditBookingModal from "./EditBookingModal";
 import type { Booking } from "../../data/types";
 import { useTranslation } from "react-i18next";
+import Loader from "../../components/Loader";
 
 interface VisitorColor {
   bg: string;
@@ -75,12 +76,7 @@ export default function CalendarTab() {
     } else setViewMonth((m) => m + 1);
   };
 
-  if (loading)
-    return (
-      <div className="admin-loader">
-        <span className="btn-spinner" />
-      </div>
-    );
+  if (loading) return Loader();
 
   return (
     <div className="admin-tab-content">

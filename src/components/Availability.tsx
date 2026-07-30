@@ -5,77 +5,54 @@ import {
   type CalendarMonth,
 } from "@demark-pro/react-booking-calendar";
 import "@demark-pro/react-booking-calendar/dist/react-booking-calendar.css";
-import type { AvailabilityMonth, Status } from "../data/types";
 import { useTranslation } from "react-i18next";
-import { useMonthNames } from "../pages/admin/utils";
+import { clearTime, useMonthNames } from "../pages/admin/utils";
 import useInView from "../hooks/useInView";
+import Loader from "./Loader";
 
-function daysToReserved(days: Status[], year: number, month: number) {
-  const reserved: { startDate: Date; endDate: Date; color: string }[] = [];
-  let start: number | null = null;
-  for (let i = 0; i < days.length; i++) {
-    if (days[i] === "booked" && start === null) start = i + 1;
-    else if (days[i] !== "booked" && start !== null) {
-      reserved.push({
-        startDate: new Date(year, month, start),
-        endDate: new Date(year, month, i + 1),
-        color: "#fce4ec",
-      });
-      start = null;
-    }
-  }
-  if (start !== null) {
-    reserved.push({
-      startDate: new Date(year, month, start),
-      endDate: new Date(year, month, days.length + 1),
-      color: "#fce4ec",
-    });
-  }
-  return reserved;
+const today = clearTime(new Date());
+const currYear = today.getFullYear();
+const currMonth = today.getMonth() as CalendarMonth;
+const years = [currYear, currYear + 1, currYear + 2];
+
+function calcReserved(
+  selectedMonth: number,
+  bookedRanges: { start: Date; end: Date }[],
+) {
+  const prevMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
+  const nextMonth = selectedMonth === 11 ? 0 : selectedMonth + 1;
+
+  return bookedRanges
+    .filter((b) => {
+      const min = Math.min(b.start.getMonth(), b.end.getMonth());
+      const max = Math.max(b.start.getMonth(), b.end.getMonth());
+
+      return min >= prevMonth || max <= nextMonth;
+    })
+    .map((b) => ({
+      startDate: b.start,
+      endDate: b.end,
+      color: "white",
+    }));
 }
 
 export default function Availability() {
   const monthNames = useMonthNames();
-  const [availability, setAvailability] = useState<AvailabilityMonth[]>([]);
-  const [selectedYear, setSelectedYear] = useState<number>(0);
-  const [selectedMonth, setSelectedMonth] = useState<CalendarMonth>(0);
+  const [bookedRanges, setBookedRanges] = useState<
+    { start: Date; end: Date }[]
+  >([]);
+  const [selectedYear, setSelectedYear] = useState<number>(currYear);
+  const [selectedMonth, setSelectedMonth] = useState<CalendarMonth>(currMonth);
   const { t } = useTranslation();
   const { ref: cardRef, inView: cardInView } = useInView();
 
   useEffect(() => {
-    bookings.availability(monthNames).then((data) => {
-      setAvailability(data);
-      if (data.length > 0) {
-        const [name, yearStr] = data[0].month.split(" ");
-        setSelectedYear(parseInt(yearStr));
-        setSelectedMonth(monthNames.indexOf(name) as CalendarMonth);
-      }
-    });
+    bookings.getBookedDates().then(setBookedRanges);
   }, []);
 
-  const years = [
-    ...new Set(
-      availability.map((a) => {
-        const [, yearStr] = a.month.split(" ");
-        return parseInt(yearStr);
-      }),
-    ),
-  ];
-
-  const monthsForYear = availability.filter((a) =>
-    a.month.endsWith(` ${selectedYear}`),
-  );
-
-  const selectedData = availability.find(
-    (a) => a.month === `${monthNames[selectedMonth]} ${selectedYear}`,
-  );
-
-  const reserved = useMemo(
-    () =>
-      selectedData
-        ? daysToReserved(selectedData.days, selectedYear, selectedMonth)
-        : [],
-    [selectedData, selectedYear, selectedMonth],
+  const reserved = useMemo<{ startDate: Date; endDate: Date; color: string }[]>(
+    () => calcReserved(selectedMonth, bookedRanges),
+    [selectedYear, selectedMonth, cardInView],
   );
 
   return (
@@ -89,17 +66,7 @@ export default function Availability() {
             <div className="avail-select-group">
               <select
                 value={selectedYear}
-                onChange={(e) => {
-                  const y = parseInt(e.target.value);
-                  setSelectedYear(y);
-                  const first = availability.find((a) =>
-                    a.month.endsWith(` ${y}`),
-                  );
-                  if (first) {
-                    const [name] = first.month.split(" ");
-                    setSelectedMonth(monthNames.indexOf(name) as CalendarMonth);
-                  }
-                }}
+                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
                 className="avail-select"
               >
                 {years.map((y) => (
@@ -116,11 +83,12 @@ export default function Availability() {
                 className="avail-select"
               >
                 {monthNames.map((m, i) => {
-                  const disabled = !monthsForYear.some((a) =>
-                    a.month.startsWith(m),
-                  );
                   return (
-                    <option key={i} value={i} disabled={disabled}>
+                    <option
+                      key={i}
+                      value={i}
+                      disabled={selectedYear === currYear && i < currMonth}
+                    >
                       {m}
                     </option>
                   );
@@ -130,7 +98,7 @@ export default function Availability() {
           </div>
 
           <div className="avail-calendar">
-            {selectedData ? (
+            {bookedRanges.length !== 0 ? (
               <Calendar
                 className="avail-booking-calendar"
                 selected={[]}
@@ -139,6 +107,8 @@ export default function Availability() {
                 month={selectedMonth}
                 year={selectedYear}
                 onMonthChange={(m, y) => {
+                  if (m < currMonth && y <= currYear) return;
+
                   setSelectedMonth(m);
                   setSelectedYear(y);
                 }}
@@ -151,9 +121,7 @@ export default function Availability() {
                 }}
               />
             ) : (
-              <p className="avail-empty">
-                {t("noData", "No availability data")}
-              </p>
+              Loader()
             )}
           </div>
 

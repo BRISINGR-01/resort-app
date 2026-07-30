@@ -12,21 +12,29 @@ export default function Hero() {
     <section id="home" className="hero">
       <div className="hero-overlay"></div>
       <div className="hero-content" ref={ref}>
-        <p className={`hero-tagline animate-fade-in-up ${inView ? "visible" : ""}`}>
+        <p
+          className={`hero-tagline animate-fade-in-up ${inView ? "visible" : ""}`}
+        >
           {t("welcomeTo", "Welcome to")}
         </p>
-        <h1 className={`hero-title animate-fade-in-up delay-1 ${inView ? "visible" : ""}`}>
+        <h1
+          className={`hero-title animate-fade-in-up delay-1 ${inView ? "visible" : ""}`}
+        >
           {homePage.name}
         </h1>
-        <p className={`hero-subtitle animate-fade-in-up delay-2 ${inView ? "visible" : ""}`}>
+        <p
+          className={`hero-subtitle animate-fade-in-up delay-2 ${inView ? "visible" : ""}`}
+        >
           {homePage.description}
         </p>
-        <div className={`hero-buttons animate-fade-in-up delay-3 ${inView ? "visible" : ""}`}>
-          <Link to="/reservation" className="btn btn-primary">
-            {t("checkAvailability", "Check Availability")}
-          </Link>
+        <div
+          className={`hero-buttons animate-fade-in-up delay-3 ${inView ? "visible" : ""}`}
+        >
           <Link to="/gallery" className="btn btn-secondary">
             {t("exploreStudio", "Explore Studio")}
+          </Link>
+          <Link to="/reservation" className="btn btn-primary">
+            {t("checkAvailability", "Check Availability")}
           </Link>
         </div>
       </div>

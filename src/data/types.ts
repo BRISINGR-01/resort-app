@@ -49,9 +49,8 @@ export interface SupabaseResponse<T> {
 }
 
 export interface AvailabilityMonth {
-  month: string;
-  status: "available" | "limited" | "booked";
-  spots: number;
+  month: number;
+  year: number;
   days: Status[];
 }
 

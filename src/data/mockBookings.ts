@@ -1,11 +1,5 @@
 import { clearTime } from "../pages/admin/utils";
-import buildAvailability from "./buildAvailability";
-import type {
-  Booking,
-  BookingPayload,
-  SupabaseResponse,
-  AvailabilityMonth,
-} from "./types";
+import type { Booking, BookingPayload, SupabaseResponse } from "./types";
 import i18next from "i18next";
 
 let bookings: Booking[] = [
@@ -123,8 +117,15 @@ const mockBookings = {
     return { data: rows, error: null };
   },
 
-  async availability(monthNames: string[]): Promise<AvailabilityMonth[]> {
-    return buildAvailability(bookings, monthNames);
+  async getBookedDates(): Promise<{ start: Date; end: Date }[]> {
+    const today = clearTime(new Date());
+
+    return bookings
+      .filter((d) => d.end_date >= today)
+      .map((d) => ({
+        start: d.start_date,
+        end: d.end_date,
+      }));
   },
 };
 

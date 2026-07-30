@@ -60,9 +60,17 @@ const realBookings = {
     return builder;
   },
 
-  async availability(): Promise<AvailabilityMonth[]> {
+  async getBookedDates(): Promise<{ start: Date; end: Date }[]> {
     const { data } = await supabase.from(TABLE).select("start_date, end_date");
-    return buildAvailability(data || []);
+    if (!data) return [];
+
+    const today = new Date();
+    return data
+      .filter((d) => d.end_date > today)
+      .map((d) => ({
+        start: d.start_date,
+        end: d.end_date,
+      }));
   },
 };
 

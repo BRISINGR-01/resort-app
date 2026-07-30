@@ -132,4 +132,3 @@ export default function useInfo() {
     ],
   };
 }
-// фонт, слоган, страници
