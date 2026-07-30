@@ -4,7 +4,6 @@ import { text } from "../data/text";
 
 interface GalleryImage {
   url: string;
-  alt: string;
   caption: string;
 }
 
@@ -26,7 +25,7 @@ export default function Gallery() {
               className={`gallery-item gallery-item-${i + 1}`}
               onClick={() => setSelected(img)}
             >
-              <img src={img.url} alt={img.alt} loading="lazy" />
+              <img src={img.url} alt={img.caption} loading="lazy" />
               <div className="gallery-overlay">
                 <span className="gallery-caption">{img.caption}</span>
                 <span className="gallery-expand">View</span>
@@ -48,7 +47,7 @@ export default function Gallery() {
             >
               &times;
             </button>
-            <img src={selected.url} alt={selected.alt} />
+            <img src={selected.url} alt={selected.caption} />
             <p className="lightbox-caption">{selected.caption}</p>
           </div>
         </div>

@@ -9,16 +9,10 @@ export default function About() {
           <div className="about-left-side">
             <div className="about-images">
               <div className="about-img-main">
-                <img
-                  src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&q=80"
-                  alt="Luxury studio interior"
-                />
+                <img src="gallery/room/1.jpg" alt="Luxury studio interior" />
               </div>
               <div className="about-img-accent">
-                <img
-                  src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80"
-                  alt="Beach view"
-                />
+                <img src="gallery/beach/1.jpg" alt="Beach view" />
               </div>
               <div className="about-badge">
                 <span className="badge-number">12+</span>

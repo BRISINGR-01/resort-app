@@ -377,7 +377,7 @@ export default function BookingForm({
         </div>
       )}
 
-      {!onDelete && externalStatus === undefined && (
+      {submitLabel && (
         <button
           type="submit"
           className="btn btn-primary btn-full"

@@ -14,7 +14,13 @@ export default function Navbar() {
     <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
       <div className="nav-container">
         <a href="#home" className="nav-logo">
-          <span className="logo-icon">C</span>
+          <span className="logo-icon">
+            <img
+              style={{ height: "80%", transform: "translateY(-3px)" }}
+              src="icon.svg"
+              alt="logo"
+            />
+          </span>
           <span className="logo-text">Coral Bay</span>
         </a>
 

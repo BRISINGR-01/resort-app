@@ -73,26 +73,6 @@ export default function Contact() {
                     stroke="currentColor"
                     strokeWidth="1.5"
                   >
-                    <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <h4>Email</h4>
-                  <a href={`mailto:${basicInformation.contact.email}`}>
-                    {basicInformation.contact.email}
-                  </a>
-                </div>
-              </div>
-              <div className="contact-item">
-                <div className="contact-item-icon">
-                  <svg
-                    width="22"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  >
                     <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                   </svg>
                 </div>
@@ -133,71 +113,73 @@ export default function Contact() {
             </div>
           </div>
 
-          <div className="contact-form-wrapper">
-            {status === "success" ? (
-              <div className="form-success">
-                <div className="form-success-icon">
-                  <svg
-                    width="48"
-                    height="48"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
+          {false && (
+            <div className="contact-form-wrapper">
+              {status === "success" ? (
+                <div className="form-success">
+                  <div className="form-success-icon">
+                    <svg
+                      width="48"
+                      height="48"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                      <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                  </div>
+                  <h3>Inquiry Sent!</h3>
+                  <p>
+                    Thank you for reaching out. We'll get back to you shortly.
+                  </p>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => setStatus("idle")}
                   >
-                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-                    <polyline points="22 4 12 14.01 9 11.01" />
-                  </svg>
+                    Send Another
+                  </button>
                 </div>
-                <h3>Inquiry Sent!</h3>
-                <p>
-                  Thank you for reaching out. We'll get back to you shortly.
-                </p>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={() => setStatus("idle")}
-                >
-                  Send Another
-                </button>
-              </div>
-            ) : status === "failed" ? (
-              <div className="form-success">
-                <div className="form-fail-icon">
-                  <svg
-                    width="48"
-                    height="48"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
+              ) : status === "failed" ? (
+                <div className="form-success">
+                  <div className="form-fail-icon">
+                    <svg
+                      width="48"
+                      height="48"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="15" y1="9" x2="9" y2="15" />
+                      <line x1="9" y1="9" x2="15" y2="15" />
+                    </svg>
+                  </div>
+                  <h3>Something went wrong</h3>
+                  <p>We couldn't send your inquiry. Please try again.</p>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => setStatus("idle")}
                   >
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="15" y1="9" x2="9" y2="15" />
-                    <line x1="9" y1="9" x2="15" y2="15" />
-                  </svg>
+                    Try Again
+                  </button>
                 </div>
-                <h3>Something went wrong</h3>
-                <p>We couldn't send your inquiry. Please try again.</p>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={() => setStatus("idle")}
-                >
-                  Try Again
-                </button>
-              </div>
-            ) : (
-              <BookingForm
-                idPrefix="contact"
-                className="contact-form"
-                nameLabel="Full Name"
-                submitLabel="Send Inquiry"
-                status={status}
-                onSubmit={handleSubmit}
-              />
-            )}
-          </div>
+              ) : (
+                <BookingForm
+                  idPrefix="contact"
+                  className="contact-form"
+                  nameLabel="Full Name"
+                  submitLabel="Send Inquiry"
+                  status={status}
+                  onSubmit={handleSubmit}
+                />
+              )}
+            </div>
+          )}
         </div>
       </div>
     </section>

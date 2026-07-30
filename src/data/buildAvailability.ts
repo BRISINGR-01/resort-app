@@ -15,10 +15,6 @@ const MONTH_NAMES: string[] = [
   "December",
 ];
 
-function dateKey(y: number, m: number, d: number): string {
-  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-}
-
 interface DateRange {
   start_date: string | Date;
   end_date: string | Date;
