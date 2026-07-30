@@ -1,7 +1,10 @@
-import { amenities } from "../data/amenities";
-import { text } from "../data/text";
+import { useTranslation } from "react-i18next";
+import useInfo from "../data/information";
 
 export default function About() {
+  const { t } = useTranslation();
+  const { aboutPage, amenities } = useInfo();
+
   return (
     <section className="about">
       <div className="container">
@@ -9,14 +12,16 @@ export default function About() {
           <div className="about-left-side">
             <div className="about-images">
               <div className="about-img-main">
-                <img src="gallery/room/1.jpg" alt="Luxury studio interior" />
+                <img
+                  src="gallery/room/1.jpg"
+                  alt={t("luxuryStudioInterior", "Luxury studio interior")}
+                />
               </div>
               <div className="about-img-accent">
-                <img src="gallery/beach/1.jpg" alt="Beach view" />
-              </div>
-              <div className="about-badge">
-                <span className="badge-number">12+</span>
-                <span className="badge-text">Years of Hospitality</span>
+                <img
+                  src="gallery/beach/1.jpg"
+                  alt={t("beachView", "Beach view")}
+                />
               </div>
             </div>
             <div className="amenities-grid">
@@ -35,8 +40,8 @@ export default function About() {
             </div>
           </div>
           <div className="about-content">
-            <h2 className="section-title">{text.aboutPage.greeting}</h2>
-            <p className="about-text">{text.aboutPage.description}</p>
+            <h2 className="section-title">{aboutPage.greeting}</h2>
+            <p className="about-text">{aboutPage.description}</p>
           </div>
         </div>
       </div>

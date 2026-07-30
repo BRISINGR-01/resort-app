@@ -1,8 +1,18 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import useInfo from "../data/information";
 
 export default function Navbar() {
+  const { t, i18n } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { homePage } = useInfo();
+
+  const toggleLanguage = () => {
+    const next = i18n.resolvedLanguage === "bg" ? "en" : "bg";
+    i18n.changeLanguage(next);
+    localStorage.setItem("lang", next);
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 60);
@@ -21,7 +31,7 @@ export default function Navbar() {
               alt="logo"
             />
           </span>
-          <span className="logo-text">Coral Bay</span>
+          <span className="logo-text">{homePage.name}</span>
         </a>
 
         <button
@@ -37,24 +47,32 @@ export default function Navbar() {
         <ul className={`nav-links ${menuOpen ? "active" : ""}`}>
           <li>
             <a href="#home" onClick={() => setMenuOpen(false)}>
-              Home
+              {t("home", "Home")}
             </a>
           </li>
           <li>
             <a href="#gallery" onClick={() => setMenuOpen(false)}>
-              Gallery
+              {t("gallery", "Gallery")}
             </a>
           </li>
           <li>
             <a href="#availability" onClick={() => setMenuOpen(false)}>
-              Availability
+              {t("availability", "Availability")}
             </a>
           </li>
           <li>
             <a href="#contact" onClick={() => setMenuOpen(false)}>
-              Contact
+              {t("contact", "Contact")}
             </a>
           </li>
+          <button className="lang-switch" onClick={toggleLanguage}>
+            <img
+              src={
+                i18n.resolvedLanguage === "bg" ? "icons/en.svg" : "icons/bg.svg"
+              }
+              alt={i18n.resolvedLanguage === "bg" ? "English" : "Български"}
+            />
+          </button>
         </ul>
       </div>
     </nav>

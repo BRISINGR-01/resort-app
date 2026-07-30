@@ -6,6 +6,7 @@ import type {
   SupabaseResponse,
   AvailabilityMonth,
 } from "./types";
+import i18next from "i18next";
 
 let bookings: Booking[] = [
   {
@@ -17,7 +18,7 @@ let bookings: Booking[] = [
     phone: "+3597589834",
     email: "i@petrov.com",
     guests_amount: 2,
-    note: "Early check-in if possible",
+    note: i18next.t("earlyCheckinIfPossible", "Early check-in if possible"),
   },
   {
     id: "c2f9a2b1-2345-4b6c-9d0e-1f2a3b4c5d6e",
@@ -35,7 +36,7 @@ let bookings: Booking[] = [
     start_date: new Date("2026-08-10"),
     end_date: new Date("2026-08-14"),
     guests_amount: 1,
-    note: "Quiet room preferred",
+    note: i18next.t("quietRoomPreferred", "Quiet room preferred"),
   },
 ];
 
@@ -60,7 +61,7 @@ const mockBookings = {
     const row = bookings.find((b) => b.id === id);
     return {
       data: row ? { ...row } : null,
-      error: row ? null : { message: "Not found" },
+      error: row ? null : { message: i18next.t("notFound", "Not found") },
     };
   },
 
@@ -89,7 +90,11 @@ const mockBookings = {
     patch: Partial<BookingPayload>,
   ): Promise<SupabaseResponse<Booking>> {
     const idx = bookings.findIndex((b) => b.id === id);
-    if (idx === -1) return { data: null, error: { message: "Not found" } };
+    if (idx === -1)
+      return {
+        data: null,
+        error: { message: i18next.t("notFound", "Not found") },
+      };
     bookings[idx] = { ...bookings[idx], ...patch };
 
     return { data: { ...bookings[idx] }, error: null };
@@ -97,7 +102,11 @@ const mockBookings = {
 
   async remove(id: string): Promise<SupabaseResponse<Booking>> {
     const idx = bookings.findIndex((b) => b.id === id);
-    if (idx === -1) return { data: null, error: { message: "Not found" } };
+    if (idx === -1)
+      return {
+        data: null,
+        error: { message: i18next.t("notFound", "Not found") },
+      };
     const [deleted] = bookings.splice(idx, 1);
     return { data: { ...deleted }, error: null };
   },
@@ -114,8 +123,8 @@ const mockBookings = {
     return { data: rows, error: null };
   },
 
-  async availability(): Promise<AvailabilityMonth[]> {
-    return buildAvailability(bookings);
+  async availability(monthNames: string[]): Promise<AvailabilityMonth[]> {
+    return buildAvailability(bookings, monthNames);
   },
 };
 

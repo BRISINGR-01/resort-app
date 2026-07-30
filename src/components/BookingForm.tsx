@@ -3,8 +3,9 @@ import { useForm, type UseFormSetValue } from "react-hook-form";
 import PhoneInput from "react-phone-input-2";
 import { isValidPhoneNumber, type CountryCode } from "libphonenumber-js";
 import DatePicker from "./DatePicker";
-import { basicInformation } from "../data/basicInformation";
 import type { Booking, BookingPayload, SupabaseResponse } from "../data/types";
+import { useTranslation } from "react-i18next";
+import useInfo from "../data/information";
 
 function toDateString(date: Date | null | undefined): string {
   if (!date) return "";
@@ -80,6 +81,7 @@ export default function BookingForm({
   deleteLabel = "Delete",
   status: externalStatus,
 }: BookingFormProps) {
+  const { t } = useTranslation();
   const init = { ...DEFAULTS, ...defaultValues };
 
   const [dates, setDates] = useState<[Date | null, Date | null]>(() => [
@@ -136,7 +138,12 @@ export default function BookingForm({
     setDates([ci, co]);
     setValue(
       "dates",
-      ci && co ? `${toDateString(ci)}-${toDateString(co)}` : "",
+      ci && co
+        ? t("valval2", "{{val}}-{{val2}}", {
+            val: toDateString(ci),
+            val2: toDateString(co),
+          })
+        : "",
       { shouldValidate: true },
     );
   };
@@ -198,7 +205,8 @@ export default function BookingForm({
     }
   };
 
-  const p = (name: string) => `${idPrefix}-${name}`;
+  const p = (name: string) =>
+    t("idprefixname", "{{idPrefix}}-{{name}}", { idPrefix, name });
 
   return (
     <form
@@ -214,13 +222,16 @@ export default function BookingForm({
           <input
             type="text"
             id={p("name")}
-            placeholder="John Smith"
+            placeholder={"John Smith"}
             className={errors.client_name ? "input-error" : ""}
             {...register("client_name", {
-              required: "Name is required",
+              required: t("nameIsRequired", "Name is required"),
               minLength: {
                 value: 2,
-                message: "Name must be at least 2 characters",
+                message: t(
+                  "nameMustBeAtLeast2Characters",
+                  "Name must be at least 2 characters",
+                ),
               },
             })}
           />
@@ -230,7 +241,7 @@ export default function BookingForm({
         </div>
 
         <div className="form-group">
-          <label htmlFor={p("email")}>Email</label>
+          <label htmlFor={p("email")}>{t("email", "Email")}</label>
           <input
             type="email"
             id={p("email")}
@@ -240,7 +251,10 @@ export default function BookingForm({
               required: false,
               pattern: {
                 value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-                message: "Enter a valid email address",
+                message: t(
+                  "enterAValidEmailAddress",
+                  "Enter a valid email address",
+                ),
               },
             })}
           />
@@ -250,7 +264,7 @@ export default function BookingForm({
         </div>
 
         <div className="form-group">
-          <label htmlFor={p("phone")}>Phone Number</label>
+          <label htmlFor={p("phone")}>{t("phoneNumber", "Phone Number")}</label>
           <PhoneInput
             country={phoneCountry}
             value={phone}
@@ -273,7 +287,8 @@ export default function BookingForm({
                   ? isValidPhoneNumber(
                       `+${value}`,
                       phoneCountry.toUpperCase() as CountryCode,
-                    ) || "Enter a valid phone number"
+                    ) ||
+                    t("enterAValidPhoneNumber", "Enter a valid phone number")
                   : true,
             })}
             value={phone}
@@ -283,7 +298,7 @@ export default function BookingForm({
           )}
         </div>
         <div className="form-group">
-          <label htmlFor={p("guests_amount")}>Guests</label>
+          <label htmlFor={p("guests_amount")}>{t("guests", "Guests")}</label>
           <GuestCounter
             id={p("guests_amount")}
             value={guestsAmount}
@@ -296,7 +311,7 @@ export default function BookingForm({
       </div>
 
       <div>
-        <label>Dates</label>
+        <label>{t("dates", "Dates")}</label>
         <DatePicker
           prevoiuslySelected={[init.start_date, init.end_date]}
           defaultVal={dates}
@@ -305,7 +320,10 @@ export default function BookingForm({
         <input
           type="hidden"
           {...register("dates", {
-            required: "Both check-in and check-out dates are required",
+            required: t(
+              "bothCheckinAndCheckoutDatesAreRequired",
+              "Both check-in and check-out dates are required",
+            ),
           })}
         />
         {errors.dates && (
@@ -314,10 +332,15 @@ export default function BookingForm({
       </div>
 
       <div className="form-group">
-        <label htmlFor={p("note")}>Note (optional)</label>
+        <label htmlFor={p("note")}>
+          {t("noteOptional", "Note (optional)")}
+        </label>
         <textarea
           id={p("note")}
-          placeholder="Tell us about your dream vacation..."
+          placeholder={t(
+            "tellUsAboutYourDreamVacation",
+            "Tell us about your dream vacation...",
+          )}
           className={errors.note ? "input-error" : ""}
           {...register("note")}
         />
@@ -337,7 +360,7 @@ export default function BookingForm({
                 </button>
               ) : (
                 <div className="admin-delete-confirm">
-                  <span>Delete?</span>
+                  <span>{t("delete", "Delete?")}</span>
                   <button
                     type="button"
                     className="admin-btn admin-btn-delete-confirm"
@@ -347,7 +370,7 @@ export default function BookingForm({
                     {status === "deleting" ? (
                       <span className="btn-spinner" />
                     ) : (
-                      "Yes, delete"
+                      t("yesDelete", "Yes, delete")
                     )}
                   </button>
                   <button
@@ -355,7 +378,7 @@ export default function BookingForm({
                     className="admin-btn admin-btn-cancel"
                     onClick={() => setConfirmDelete(false)}
                   >
-                    Cancel
+                    {t("cancel", "Cancel")}
                   </button>
                 </div>
               )}
@@ -402,6 +425,7 @@ interface GuestCounterProps {
 
 function GuestCounter({ value, setValue }: GuestCounterProps) {
   const count = value || 1;
+  const { maxGuests } = useInfo();
 
   return (
     <div className="guest-selector">
@@ -421,11 +445,9 @@ function GuestCounter({ value, setValue }: GuestCounterProps) {
         type="button"
         className="guest-btn"
         onClick={() =>
-          setValue(
-            "guests_amount",
-            Math.min(basicInformation.maxGuests, count + 1),
-            { shouldValidate: true },
-          )
+          setValue("guests_amount", Math.min(maxGuests, count + 1), {
+            shouldValidate: true,
+          })
         }
       >
         +

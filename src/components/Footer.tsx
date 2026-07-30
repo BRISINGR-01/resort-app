@@ -1,6 +1,10 @@
-import { text } from "../data/text";
+import { useTranslation } from "react-i18next";
+import useInfo from "../data/information";
 
 export default function Footer() {
+  const { t } = useTranslation();
+  const { homePage } = useInfo();
+
   return (
     <footer className="footer">
       <div className="container">
@@ -8,24 +12,24 @@ export default function Footer() {
           <div className="footer-brand">
             <div className="nav-logo">
               <span className="logo-icon">C</span>
-              <span className="logo-text">{text.homePage.name}</span>
+              <span className="logo-text">{homePage.name}</span>
             </div>
-            <p>{text.homePage.description}</p>
+            <p>{homePage.description}</p>
           </div>
           <div className="footer-links">
-            <h4>Quick Links</h4>
+            <h4>{t("quickLinks", "Quick Links")}</h4>
             <ul>
               <li>
-                <a href="#home">Home</a>
+                <a href="#home">{t("home", "Home")}</a>
               </li>
               <li>
-                <a href="#gallery">Gallery</a>
+                <a href="#gallery">{t("gallery", "Gallery")}</a>
               </li>
               <li>
-                <a href="#availability">Availability</a>
+                <a href="#availability">{t("availability", "Availability")}</a>
               </li>
               <li>
-                <a href="#contact">Contact</a>
+                <a href="#contact">{t("contact", "Contact")}</a>
               </li>
             </ul>
           </div>

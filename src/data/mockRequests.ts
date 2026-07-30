@@ -5,6 +5,7 @@ import type {
   BookingPayload,
   SupabaseResponse,
 } from "./types";
+import i18next from "i18next";
 
 let requests: Request[] = [
   {
@@ -78,7 +79,7 @@ const mockRequests = {
     const row = requests.find((r) => r.id === id);
     return {
       data: row ? { ...row } : null,
-      error: row ? null : { message: "Not found" },
+      error: row ? null : { message: i18next.t("notFound", "Not found") },
     };
   },
 
@@ -111,7 +112,11 @@ const mockRequests = {
 
   async accept(id: string): Promise<SupabaseResponse<Request>> {
     const idx = requests.findIndex((r) => r.id === id);
-    if (idx === -1) return { data: null, error: { message: "Not found" } };
+    if (idx === -1)
+      return {
+        data: null,
+        error: { message: i18next.t("notFound", "Not found") },
+      };
 
     const request: Request = { ...requests[idx], denied: false };
     requests[idx] = request;
@@ -130,7 +135,11 @@ const mockRequests = {
 
   async reject(id: string): Promise<SupabaseResponse<Request>> {
     const idx = requests.findIndex((r) => r.id === id);
-    if (idx === -1) return { data: null, error: { message: "Not found" } };
+    if (idx === -1)
+      return {
+        data: null,
+        error: { message: i18next.t("notFound", "Not found") },
+      };
     requests[idx] = { ...requests[idx], denied: true };
     return { data: { ...requests[idx] }, error: null };
   },

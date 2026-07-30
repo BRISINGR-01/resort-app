@@ -1,6 +1,7 @@
 import BookingForm from "../../components/BookingForm";
 import bookings from "../../data/bookings";
 import type { Booking, BookingPayload } from "../../data/types";
+import { useTranslation } from "react-i18next";
 
 interface EditBookingModalProps {
   booking: Booking | null;
@@ -15,17 +16,18 @@ export default function EditBookingModal({
   onSaved,
   onDeleted,
 }: EditBookingModalProps) {
+  const { t } = useTranslation();
   if (!booking) return null;
 
   return (
     <div className="admin-modal-overlay" onClick={onClose}>
       <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
         <div className="admin-modal-header">
-          <h3>Edit Booking</h3>
+          <h3>{t("editBooking", "Edit Booking")}</h3>
           <button
             className="admin-modal-close"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("close", "Close")}
           >
             &times;
           </button>

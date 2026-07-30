@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { galleryImages } from "../data/galleryImages";
-import { text } from "../data/text";
+import { useTranslation } from "react-i18next";
+import useInfo from "../data/information";
 
 interface GalleryImage {
   url: string;
@@ -8,14 +8,16 @@ interface GalleryImage {
 }
 
 export default function Gallery() {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<GalleryImage | null>(null);
+  const { galleryPage, galleryImages } = useInfo();
 
   return (
     <section id="gallery" className="gallery">
       <div className="container">
         <div className="section-header">
-          <h2 className="section-title">{text.galleryPage.title}</h2>
-          <p className="section-desc">{text.galleryPage.description}</p>
+          <h2 className="section-title">{galleryPage.title}</h2>
+          <p className="section-desc">{galleryPage.description}</p>
         </div>
 
         <div className="gallery-grid">
@@ -28,7 +30,7 @@ export default function Gallery() {
               <img src={img.url} alt={img.caption} loading="lazy" />
               <div className="gallery-overlay">
                 <span className="gallery-caption">{img.caption}</span>
-                <span className="gallery-expand">View</span>
+                <span className="gallery-expand">{t("view", "View")}</span>
               </div>
             </div>
           ))}

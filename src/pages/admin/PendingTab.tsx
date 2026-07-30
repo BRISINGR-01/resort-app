@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import requests from "../../data/requests";
 import { formatDate, formatDateTime } from "./utils";
-import type { Request } from "../../data/types";
+import type { Request } from "../../data/types";import { useTranslation } from 'react-i18next'
+
 
 export default function PendingTab() {
+  const { t } = useTranslation()
   const [items, setItems] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [actingId, setActingId] = useState<string | null>(null);
@@ -54,7 +56,7 @@ export default function PendingTab() {
           >
             <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p>No pending requests</p>
+          <p>{t('noPendingRequests', 'No pending requests')}</p>
         </div>
       ) : (
         <div className="admin-requests-list">
@@ -62,27 +64,27 @@ export default function PendingTab() {
             <div key={r.id} className="admin-request-card">
               <div className="admin-request-header">
                 <h3 className="admin-request-name">{r.client_name}</h3>
-                <span className="admin-badge admin-badge-pending">Pending</span>
+                <span className="admin-badge admin-badge-pending">{t('pending', 'Pending')}</span>
               </div>
               <div className="admin-request-details">
                 <div className="admin-detail">
-                  <span className="admin-detail-label">Check-in</span>
+                  <span className="admin-detail-label">{t('checkin', 'Check-in')}</span>
                   <span className="admin-detail-value">
                     {formatDate(r.start_date as Date)}
                   </span>
                 </div>
                 <div className="admin-detail">
-                  <span className="admin-detail-label">Check-out</span>
+                  <span className="admin-detail-label">{t('checkout', 'Check-out')}</span>
                   <span className="admin-detail-value">
                     {formatDate(r.end_date as Date)}
                   </span>
                 </div>
                 <div className="admin-detail">
-                  <span className="admin-detail-label">Guests</span>
+                  <span className="admin-detail-label">{t('guests', 'Guests')}</span>
                   <span className="admin-detail-value">{r.guests_amount}</span>
                 </div>
                 <div className="admin-detail">
-                  <span className="admin-detail-label">Submitted</span>
+                  <span className="admin-detail-label">{t('submitted', 'Submitted')}</span>
                   <span className="admin-detail-value">
                     {formatDateTime(r.created_at)}
                   </span>
@@ -90,7 +92,7 @@ export default function PendingTab() {
               </div>
               {r.note && (
                 <div className="admin-request-note">
-                  <span className="admin-detail-label">Note</span>
+                  <span className="admin-detail-label">{t('note', 'Note')}</span>
                   <p>{r.note}</p>
                 </div>
               )}
@@ -111,7 +113,7 @@ export default function PendingTab() {
                   onClick={() => handleDeny(r.id)}
                   disabled={actingId === r.id}
                 >
-                  Deny
+                  {t('deny', 'Deny')}
                 </button>
               </div>
             </div>

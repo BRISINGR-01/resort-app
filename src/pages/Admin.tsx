@@ -3,16 +3,19 @@ import { Link } from "react-router-dom";
 import PendingTab from "./admin/PendingTab";
 import HistoryTab from "./admin/HistoryTab";
 import CalendarTab from "./admin/CalendarTab";
-import AddBookingTab from "./admin/AddBookingTab";
+import AddBookingTab from "./admin/AddBookingTab";import { useTranslation } from 'react-i18next'
+import i18next from 'i18next'
+
 
 const tabs = [
-  { id: "calendar", label: "Calendar" },
-  { id: "add", label: "Add Booking" },
-  { id: "pending", label: "Pending" },
-  { id: "history", label: "History" },
+  { id: "calendar", label: i18next.t('calendar', 'Calendar') },
+  { id: "add", label: i18next.t('addBooking', 'Add Booking') },
+  { id: "pending", label: i18next.t('pending', 'Pending') },
+  { id: "history", label: i18next.t('history', 'History') },
 ];
 
 export default function Admin() {
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState("calendar");
 
   return (
@@ -30,9 +33,9 @@ export default function Admin() {
             >
               <path d="M19 12H5m7-7l-7 7 7 7" />
             </svg>
-            Back to Site
+            {t('backToSite', 'Back to Site')}
           </Link>
-          <h1 className="admin-title">Admin Dashboard</h1>
+          <h1 className="admin-title">{t('adminDashboard', 'Admin Dashboard')}</h1>
         </div>
       </header>
 

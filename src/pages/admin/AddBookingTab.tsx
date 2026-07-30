@@ -1,9 +1,11 @@
 import { useState } from "react";
 import BookingForm from "../../components/BookingForm";
 import bookings from "../../data/bookings";
-import type { BookingPayload } from "../../data/types";
+import type { BookingPayload } from "../../data/types";import { useTranslation } from 'react-i18next'
+
 
 export default function AddBookingTab() {
+  const { t } = useTranslation()
   const [status, setStatus] = useState<"idle" | "submitting" | "success">(
     "idle",
   );
@@ -34,13 +36,13 @@ export default function AddBookingTab() {
             <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
             <polyline points="22 4 12 14.01 9 11.01" />
           </svg>
-          <h3>Booking Added</h3>
-          <p>The booking has been created successfully.</p>
+          <h3>{t('bookingAdded', 'Booking Added')}</h3>
+          <p>{t('theBookingHasBeenCreatedSuccessfully', 'The booking has been created successfully.')}</p>
           <button
             className="admin-btn admin-btn-accept"
             onClick={() => setStatus("idle")}
           >
-            Add Another
+            {t('addAnother', 'Add Another')}
           </button>
         </div>
       </div>

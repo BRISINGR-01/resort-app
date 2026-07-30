@@ -1,21 +1,8 @@
 import { useState, useEffect } from "react";
 import bookings from "../data/bookings";
 import type { Status } from "../data/types";
-
-const MONTH_NAMES = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
+import { useTranslation } from "react-i18next";
+import { useMonthNames } from "../pages/admin/utils";
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -26,12 +13,13 @@ interface AvailabilityEntry {
 
 function buildDateMap(
   availability: AvailabilityEntry[],
+  monthNames: string[],
   prevoiuslySelected?: [Date | null, Date | null],
 ): Record<string, Status> {
   const map: Record<string, Status> = {};
   for (const entry of availability) {
     const [monthName, yearStr] = entry.month.split(" ");
-    const monthNum = MONTH_NAMES.indexOf(monthName);
+    const monthNum = monthNames.indexOf(monthName);
     const year = parseInt(yearStr);
     entry.days.forEach((status, i) => {
       const d = new Date(year, monthNum, i + 1);
@@ -89,6 +77,7 @@ function CalendarModal({
   initialCheckOut,
   dateMap,
 }: CalendarModalProps) {
+  const { t } = useTranslation();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -97,6 +86,7 @@ function CalendarModal({
   const [checkIn, setCheckIn] = useState<Date | null>(initialCheckIn);
   const [checkOut, setCheckOut] = useState<Date | null>(initialCheckOut);
   const [selecting, setSelecting] = useState<"checkin" | "checkout">("checkin");
+  const monthNames = useMonthNames();
 
   useEffect(() => {
     if (open) {
@@ -201,8 +191,12 @@ function CalendarModal({
     <div className="cdp-overlay" onClick={onClose}>
       <div className="cdp-modal" onClick={(e) => e.stopPropagation()}>
         <div className="cdp-modal-header">
-          <h3>Select Dates</h3>
-          <button className="cdp-close" onClick={onClose} aria-label="Close">
+          <h3>{t("selectDates", "Select Dates")}</h3>
+          <button
+            className="cdp-close"
+            onClick={onClose}
+            aria-label={t("close", "Close")}
+          >
             &times;
           </button>
         </div>
@@ -211,7 +205,7 @@ function CalendarModal({
           <div
             className={`cdp-selection-chip ${selecting === "checkin" ? "cdp-active" : ""}`}
           >
-            <span className="cdp-chip-label">Check-in</span>
+            <span className="cdp-chip-label">{t("checkin", "Check-in")}</span>
             <span className="cdp-chip-value">
               {checkIn ? formatShort(checkIn) : "\u2014"}
             </span>
@@ -220,7 +214,7 @@ function CalendarModal({
           <div
             className={`cdp-selection-chip ${selecting === "checkout" ? "cdp-active" : ""}`}
           >
-            <span className="cdp-chip-label">Check-out</span>
+            <span className="cdp-chip-label">{t("checkout", "Check-out")}</span>
             <span className="cdp-chip-value">
               {checkOut ? formatShort(checkOut) : "\u2014"}
             </span>
@@ -248,7 +242,7 @@ function CalendarModal({
             </svg>
           </button>
           <span className="cdp-month-title">
-            {MONTH_NAMES[viewMonth]} {viewYear}
+            {monthNames[viewMonth]} {viewYear}
           </span>
           <button
             className="cdp-nav-btn"
@@ -318,7 +312,7 @@ function CalendarModal({
             onClick={handleConfirm}
             disabled={!checkIn}
           >
-            Done
+            {t("done", "Done")}
           </button>
         </div>
       </div>
@@ -337,16 +331,18 @@ export default function DatePicker({
   prevoiuslySelected,
   onDateChange,
 }: DatePickerProps) {
+  const { t } = useTranslation();
   const [checkIn, setCheckIn] = useState<Date | null>(defaultVal[0] ?? null);
   const [checkOut, setCheckOut] = useState<Date | null>(defaultVal[1] ?? null);
   const [open, setOpen] = useState(false);
   const [dateMap, setDateMap] = useState<Record<string, Status>>({});
+  const monthNames = useMonthNames();
 
   useEffect(() => {
     bookings
-      .availability()
+      .availability(monthNames)
       .then((avail: AvailabilityEntry[]) =>
-        setDateMap(buildDateMap(avail, prevoiuslySelected)),
+        setDateMap(buildDateMap(avail, monthNames, prevoiuslySelected)),
       );
   }, []);
 
@@ -365,9 +361,14 @@ export default function DatePicker({
 
   const displayText = checkIn
     ? checkOut
-      ? `${formatShort(checkIn)} - ${formatShort(checkOut)}`
-      : `${formatShort(checkIn)} - Select checkout`
-    : "Select check-in date";
+      ? t("valVal2", "{{val}} - {{val2}}", {
+          val: formatShort(checkIn),
+          val2: formatShort(checkOut),
+        })
+      : t("valSelectCheckout", "{{val}} - Select checkout", {
+          val: formatShort(checkIn),
+        })
+    : t("selectCheckinDate", "Select check-in date");
 
   return (
     <>

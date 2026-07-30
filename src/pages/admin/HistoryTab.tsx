@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import requests from "../../data/requests";
 import { formatDate, formatDateTime } from "./utils";
-import type { Request } from "../../data/types";
+import type { Request } from "../../data/types";import { useTranslation } from 'react-i18next'
+
 
 export default function HistoryTab() {
+  const { t } = useTranslation()
   const [items, setItems] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [actingId, setActingId] = useState<string | null>(null);
@@ -49,7 +51,7 @@ export default function HistoryTab() {
           >
             <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p>No requests yet</p>
+          <p>{t('noRequestsYet', 'No requests yet')}</p>
         </div>
       ) : (
         <div className="admin-requests-list">
@@ -65,23 +67,23 @@ export default function HistoryTab() {
               </div>
               <div className="admin-request-details">
                 <div className="admin-detail">
-                  <span className="admin-detail-label">Check-in</span>
+                  <span className="admin-detail-label">{t('checkin', 'Check-in')}</span>
                   <span className="admin-detail-value">
                     {formatDate(r.start_date as Date)}
                   </span>
                 </div>
                 <div className="admin-detail">
-                  <span className="admin-detail-label">Check-out</span>
+                  <span className="admin-detail-label">{t('checkout', 'Check-out')}</span>
                   <span className="admin-detail-value">
                     {formatDate(r.end_date as Date)}
                   </span>
                 </div>
                 <div className="admin-detail">
-                  <span className="admin-detail-label">Guests</span>
+                  <span className="admin-detail-label">{t('guests', 'Guests')}</span>
                   <span className="admin-detail-value">{r.guests_amount}</span>
                 </div>
                 <div className="admin-detail">
-                  <span className="admin-detail-label">Submitted</span>
+                  <span className="admin-detail-label">{t('submitted', 'Submitted')}</span>
                   <span className="admin-detail-value">
                     {formatDateTime(r.created_at)}
                   </span>
@@ -89,7 +91,7 @@ export default function HistoryTab() {
               </div>
               {r.note && (
                 <div className="admin-request-note">
-                  <span className="admin-detail-label">Note</span>
+                  <span className="admin-detail-label">{t('note', 'Note')}</span>
                   <p>{r.note}</p>
                 </div>
               )}

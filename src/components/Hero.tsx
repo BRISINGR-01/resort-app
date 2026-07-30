@@ -1,23 +1,27 @@
-import { text } from "../data/text";
+import { useTranslation } from "react-i18next";
+import useInfo from "../data/information";
 
 export default function Hero() {
+  const { t } = useTranslation();
+  const { homePage } = useInfo();
+
   return (
     <section id="home" className="hero">
       <div className="hero-overlay"></div>
       <div className="hero-content">
-        <p className="hero-tagline">Welcome to</p>
-        <h1 className="hero-title">{text.homePage.name}</h1>
-        <p className="hero-subtitle">{text.homePage.description}</p>
+        <p className="hero-tagline">{t("welcomeTo", "Welcome to")}</p>
+        <h1 className="hero-title">{homePage.name}</h1>
+        <p className="hero-subtitle">{homePage.description}</p>
         <div className="hero-buttons">
           <a href="#availability" className="btn btn-primary">
-            Check Availability
+            {t("checkAvailability", "Check Availability")}
           </a>
           <a href="#gallery" className="btn btn-secondary">
-            Explore Studio
+            {t("exploreStudio", "Explore Studio")}
           </a>
         </div>
         <div className="hero-scroll">
-          <span>Scroll to explore</span>
+          <span>{t("scrollToExplore", "Scroll to explore")}</span>
           <div className="scroll-line"></div>
         </div>
       </div>

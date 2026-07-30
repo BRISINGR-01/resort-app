@@ -1,19 +1,36 @@
-export const MONTH_NAMES = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
+import i18next from "i18next";
+import { useTranslation } from "react-i18next";
 
-export const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+export function useMonthNames() {
+  const { t } = useTranslation();
+  return [
+    t("january", "January"),
+    t("february", "February"),
+    t("march", "March"),
+    t("april", "April"),
+    t("may", "May"),
+    t("june", "June"),
+    t("july", "July"),
+    t("august", "August"),
+    t("september", "September"),
+    t("october", "October"),
+    t("november", "November"),
+    t("december", "December"),
+  ];
+}
+
+export function useDayLabels() {
+  const { t } = useTranslation();
+  return [
+    t("mon", "Mon"),
+    t("tue", "Tue"),
+    t("wed", "Wed"),
+    t("thu", "Thu"),
+    t("fri", "Fri"),
+    t("sat", "Sat"),
+    t("sun", "Sun"),
+  ];
+}
 
 export function formatDate(date: Date): string {
   return date.toLocaleDateString("en-GB", {
@@ -40,7 +57,11 @@ export function formatDateTime(isoStr: string): string {
 }
 
 export function dateKey(y: number, m: number, d: number): string {
-  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  return i18next.t("yvalval2", "{{y}}-{{val}}-{{val2}}", {
+    y,
+    val: String(m + 1).padStart(2, "0"),
+    val2: String(d).padStart(2, "0"),
+  });
 }
 
 export function getDaysInMonth(year: number, month: number): number {

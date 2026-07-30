@@ -1,20 +1,5 @@
 import { type AvailabilityMonth, type Status } from "./types.ts";
 
-const MONTH_NAMES: string[] = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
 interface DateRange {
   start_date: string | Date;
   end_date: string | Date;
@@ -22,6 +7,7 @@ interface DateRange {
 
 export default function buildAvailability(
   bookings: DateRange[],
+  monthNames: string[],
 ): AvailabilityMonth[] {
   const months: AvailabilityMonth[] = [];
   const start = new Date(2026, 6, 1);
@@ -41,7 +27,7 @@ export default function buildAvailability(
     const availableDays = days.filter((d) => d === "available").length;
 
     months.push({
-      month: `${MONTH_NAMES[monthNum]} ${year}`,
+      month: `${monthNames[monthNum]} ${year}`,
       status:
         availableDays === 0
           ? "booked"

@@ -1,27 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import bookings from "../data/bookings";
-import { basicInformation } from "../data/basicInformation";
 import CalendarGrid from "./CalendarGrid";
 import type { AvailabilityMonth, Status } from "../data/types";
+import { useTranslation } from "react-i18next";
+import { useMonthNames } from "../pages/admin/utils";
 
-const MONTH_NAMES = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-function getMonthMeta(month: string) {
+function getMonthMeta(month: string, monthNames: string[]) {
   const [name, yearStr] = month.split(" ");
-  const monthNum = MONTH_NAMES.indexOf(name);
+  const monthNum = monthNames.indexOf(name);
   return { name, year: parseInt(yearStr), monthNum };
 }
 
@@ -30,10 +16,17 @@ interface CalendarPanelProps {
   month: string;
   days: Status[];
   status: "available" | "limited" | "booked";
+  monthNames: string[];
 }
 
-const CalendarPanel = ({ ref, month, days, status }: CalendarPanelProps) => {
-  const { name, year, monthNum } = getMonthMeta(month);
+const CalendarPanel = ({
+  ref,
+  month,
+  days,
+  status,
+  monthNames,
+}: CalendarPanelProps) => {
+  const { name, year, monthNum } = getMonthMeta(month, monthNames);
 
   return (
     <div className="calendar-panel" ref={ref}>
@@ -65,12 +58,14 @@ const CalendarPanel = ({ ref, month, days, status }: CalendarPanelProps) => {
 };
 
 export default function Availability() {
+  const monthNames = useMonthNames();
   const [selected, setSelected] = useState<number | null>(null);
   const [availability, setAvailability] = useState<AvailabilityMonth[]>([]);
   const calendarRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
-    bookings.availability().then(setAvailability);
+    bookings.availability(monthNames).then(setAvailability);
   }, []);
 
   const handleSelect = (index: number) => {
@@ -93,17 +88,17 @@ export default function Availability() {
     <section id="availability" className="availability">
       <div className="container">
         <div className="section-header">
-          <p className="section-label">Availability</p>
+          <p className="section-label">{t("availability", "Availability")}</p>
         </div>
 
         <div className="pricing-card">
-          <div className="pricing-header">
+          {/* <div className="pricing-header">
             <div className="pricing-price">
               <span className="currency">{"\u20AC"}</span>
-              <span className="amount">{basicInformation.cost}</span>
+              <span className="amount">{100}</span>
               <span className="period">/ night</span>
             </div>
-          </div>
+          </div> */}
 
           <div className="availability-grid">
             {availability.map((item, i) => (
@@ -114,12 +109,20 @@ export default function Availability() {
               >
                 <span className="avail-month">{item.month}</span>
                 <span className={`avail-badge badge-${item.status}`}>
-                  {item.status === "available" && `${item.spots} spots open`}
-                  {item.status === "limited" && `${item.spots} spots left`}
+                  {item.status === "available" &&
+                    t("spotsSpotsOpen", "{{spots}} spots open", {
+                      spots: item.spots,
+                    })}
+                  {item.status === "limited" &&
+                    t("spotsSpotsLeft", "{{spots}} spots left", {
+                      spots: item.spots,
+                    })}
                   {item.status === "booked" && "Fully Booked"}
                 </span>
                 <span className="avail-click-hint">
-                  {selected === i ? "Click to close" : "Click to view calendar"}
+                  {selected === i
+                    ? t("clickToClose", "Click to close")
+                    : t("clickToViewCalendar", "Click to view calendar")}
                 </span>
               </div>
             ))}
@@ -127,6 +130,7 @@ export default function Availability() {
 
           {selected !== null && availability[selected] && (
             <CalendarPanel
+              monthNames={monthNames}
               ref={calendarRef}
               month={availability[selected].month}
               days={availability[selected].days}

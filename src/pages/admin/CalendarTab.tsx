@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import bookings from "../../data/bookings";
-import { MONTH_NAMES, DAY_LABELS, formatDate } from "./utils";
+import { formatDate, useDayLabels, useMonthNames } from "./utils";
 import CalendarGrid from "../../components/CalendarGrid";
 import EditBookingModal from "./EditBookingModal";
 import type { Booking } from "../../data/types";
+import { useTranslation } from "react-i18next";
 
 interface VisitorColor {
   bg: string;
@@ -23,12 +24,15 @@ const VISITOR_COLORS: VisitorColor[] = [
 ];
 
 export default function CalendarTab() {
+  const { t } = useTranslation();
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const now = new Date();
   const [viewMonth, setViewMonth] = useState(now.getMonth());
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [editing, setEditing] = useState<Booking | null>(null);
+  const monthNames = useMonthNames();
+  const dayLabels = useDayLabels();
 
   const loadBookings = useCallback(() => {
     bookings.list().then(({ data }) => {
@@ -84,10 +88,13 @@ export default function CalendarTab() {
         <CalendarGrid
           year={viewYear}
           month={viewMonth}
-          dayLabels={DAY_LABELS}
+          dayLabels={dayLabels}
           weekStart="mon"
           showNav
-          title={`${MONTH_NAMES[viewMonth]} ${viewYear}`}
+          title={t("valViewyear", "{{val}} {{viewYear}}", {
+            val: monthNames[viewMonth],
+            viewYear,
+          })}
           onPrev={prevMonth}
           onNext={nextMonth}
           renderDay={(day) => {
@@ -122,7 +129,15 @@ export default function CalendarTab() {
                           key={b.id}
                           className="admin-cal-booking-bar"
                           style={{ backgroundColor: c.bar, color: "#fff" }}
-                          title={`${b.client_name}: ${b.start_date} \u2192 ${b.end_date}`}
+                          title={t(
+                            "client_nameStart_dateEnd_date",
+                            "{{client_name}}: {{start_date}} → {{end_date}}",
+                            {
+                              client_name: b.client_name,
+                              start_date: b.start_date,
+                              end_date: b.end_date,
+                            },
+                          )}
                         >
                           <span className="admin-cal-booking-name">
                             {b.client_name}
@@ -139,7 +154,7 @@ export default function CalendarTab() {
 
         {bookingsInView.length > 0 && (
           <div className="admin-calendar-legend">
-            <h3>Bookings this month</h3>
+            <h3>{t("bookingsThisMonth", "Bookings this month")}</h3>
             <div className="admin-booking-legend-list">
               {bookingsInView.map((b) => {
                 const c = colorMap[b.id];
@@ -157,7 +172,7 @@ export default function CalendarTab() {
                     <button
                       className="admin-legend-edit"
                       onClick={() => setEditing(b)}
-                      aria-label="Edit booking"
+                      aria-label={t("editBooking2", "Edit booking")}
                     >
                       <svg
                         width="15"

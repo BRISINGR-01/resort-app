@@ -1,11 +1,14 @@
 import { useState } from "react";
 import BookingForm from "./BookingForm";
-import { basicInformation } from "../data/basicInformation";
 import requests from "../data/requests";
 import type { BookingPayload, SupabaseResponse } from "../data/types";
+import { useTranslation } from "react-i18next";
+import useInfo from "../data/information";
 
 export default function Contact() {
+  const { t } = useTranslation();
   const [status, setStatus] = useState("idle");
+  const { contact } = useInfo();
 
   const handleSubmit = async (
     data: BookingPayload,
@@ -33,10 +36,12 @@ export default function Contact() {
       <div className="container">
         <div className="contact-grid">
           <div className="contact-info">
-            <p className="section-label">Get in Touch</p>
+            <p className="section-label">{t("getInTouch", "Get in Touch")}</p>
             <p className="contact-text">
-              Have questions about the studio, the area, or available dates?
-              We'd love to hear from you!
+              {t(
+                "haveQuestionsAboutTheStudioTheAreaOrAvailableDatesWedLoveToHearFromYou",
+                "Have questions about the studio, the area, or available dates?\n              We'd love to hear from you!",
+              )}
             </p>
 
             <div className="contact-details">
@@ -55,11 +60,9 @@ export default function Contact() {
                   </svg>
                 </div>
                 <div>
-                  <h4>Location</h4>
+                  <h4>{t("location", "Location")}</h4>
                   <p>
-                    <a href={basicInformation.contact.location.maps}>
-                      {basicInformation.contact.location.text}
-                    </a>
+                    <a href={contact.location.maps}>{contact.location.text}</a>
                   </p>
                 </div>
               </div>
@@ -78,13 +81,9 @@ export default function Contact() {
                 </div>
                 <div>
                   {/* {todo: visits per day, calendar price change} */}
-                  <h4>Phone (+ Viber)</h4>
-                  <a
-                    href={
-                      "tel:" + basicInformation.contact.phone.replace(" ", "")
-                    }
-                  >
-                    {basicInformation.contact.phone}
+                  <h4>{t("phoneViber", "Phone (+ Viber)")}</h4>
+                  <a href={"tel:" + contact.phone.replace(" ", "")}>
+                    {contact.phone}
                   </a>
                 </div>
               </div>
@@ -106,8 +105,8 @@ export default function Contact() {
                   </svg>
                 </div>
                 <div>
-                  <h4>Social media</h4>
-                  <a href={basicInformation.contact.facebook}>Facebook</a>
+                  <h4>{t("socialMedia", "Social media")}</h4>
+                  <a href={contact.facebook}>{t("facebook", "Facebook")}</a>
                 </div>
               </div>
             </div>
@@ -130,16 +129,19 @@ export default function Contact() {
                       <polyline points="22 4 12 14.01 9 11.01" />
                     </svg>
                   </div>
-                  <h3>Inquiry Sent!</h3>
+                  <h3>{t("inquirySent", "Inquiry Sent!")}</h3>
                   <p>
-                    Thank you for reaching out. We'll get back to you shortly.
+                    {t(
+                      "thankYouForReachingOutWellGetBackToYouShortly",
+                      "Thank you for reaching out. We'll get back to you shortly.",
+                    )}
                   </p>
                   <button
                     type="button"
                     className="btn btn-primary"
                     onClick={() => setStatus("idle")}
                   >
-                    Send Another
+                    {t("sendAnother", "Send Another")}
                   </button>
                 </div>
               ) : status === "failed" ? (
@@ -158,14 +160,19 @@ export default function Contact() {
                       <line x1="9" y1="9" x2="15" y2="15" />
                     </svg>
                   </div>
-                  <h3>Something went wrong</h3>
-                  <p>We couldn't send your inquiry. Please try again.</p>
+                  <h3>{t("somethingWentWrong", "Something went wrong")}</h3>
+                  <p>
+                    {t(
+                      "weCouldntSendYourInquiryPleaseTryAgain",
+                      "We couldn't send your inquiry. Please try again.",
+                    )}
+                  </p>
                   <button
                     type="button"
                     className="btn btn-primary"
                     onClick={() => setStatus("idle")}
                   >
-                    Try Again
+                    {t("tryAgain", "Try Again")}
                   </button>
                 </div>
               ) : (
