@@ -3,17 +3,17 @@
   "name": "Design Studio-Green life",
   "icons": [
     {
-      "src": "favicon.ico",
+      "src": "icon-dark.png",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     },
     {
-      "src": "icons-192.png",
+      "src": "icon-dark.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "icons-192.png",
+      "src": "icon-dark.png",
       "type": "image/png",
       "sizes": "512x512"
     }

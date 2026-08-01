@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import useInfo from "../data/information";
 
 export default function Navbar() {
   const { t, i18n } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { homePage } = useInfo();
 
   const toggleLanguage = () => {
     const next = i18n.resolvedLanguage === "bg" ? "en" : "bg";
@@ -25,14 +23,11 @@ export default function Navbar() {
     <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
       <div className="nav-container">
         <Link to="/" className="nav-logo" onClick={() => setMenuOpen(false)}>
-          <span className="logo-icon">
-            <img
-              style={{ height: "80%", transform: "translateY(-3px)" }}
-              src="icon.svg"
-              alt="logo"
-            />
-          </span>
-          <span className="logo-text">{homePage.name}</span>
+          <img
+            style={{ height: "20px", transform: "translateY(-0px)" }}
+            src="icon-light.png"
+            alt="logo"
+          />
         </Link>
 
         <button
@@ -62,6 +57,11 @@ export default function Navbar() {
             </Link>
           </li>
           <li>
+            <Link to="/location" onClick={() => setMenuOpen(false)}>
+              {t("location", "Location")}
+            </Link>
+          </li>
+          <li>
             <Link to="/contact" onClick={() => setMenuOpen(false)}>
               {t("contact", "Contact")}
             </Link>
@@ -69,10 +69,15 @@ export default function Navbar() {
           <button className="lang-switch" onClick={toggleLanguage}>
             <img
               src={
-                i18n.resolvedLanguage === "bg" ? "icons/en.svg" : "icons/bg.svg"
+                i18n.resolvedLanguage === "bg"
+                  ? "icons/en.svg"
+                  : "icons/bg.svg"
               }
               alt={i18n.resolvedLanguage === "bg" ? "English" : "Български"}
             />
+            <span className="lang-switch-label">
+              {i18n.resolvedLanguage === "bg" ? "English" : "Български"}
+            </span>
           </button>
         </ul>
       </div>

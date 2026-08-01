@@ -12,7 +12,6 @@ export default function Footer() {
         <div className="footer-top">
           <div className="footer-brand">
             <div className="nav-logo">
-              <span className="logo-icon">C</span>
               <span className="logo-text">{homePage.name}</span>
             </div>
             <p>{homePage.description}</p>
@@ -27,7 +26,9 @@ export default function Footer() {
                 <Link to="/gallery">{t("gallery", "Gallery")}</Link>
               </li>
               <li>
-                <Link to="/reservation">{t("availability", "Availability")}</Link>
+                <Link to="/reservation">
+                  {t("availability", "Availability")}
+                </Link>
               </li>
               <li>
                 <Link to="/contact">{t("contact", "Contact")}</Link>

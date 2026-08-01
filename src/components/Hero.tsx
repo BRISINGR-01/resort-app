@@ -12,11 +12,6 @@ export default function Hero() {
     <section id="home" className="hero">
       <div className="hero-overlay"></div>
       <div className="hero-content" ref={ref}>
-        <p
-          className={`hero-tagline animate-fade-in-up ${inView ? "visible" : ""}`}
-        >
-          {t("welcomeTo", "Welcome to")}
-        </p>
         <h1
           className={`hero-title animate-fade-in-up delay-1 ${inView ? "visible" : ""}`}
         >

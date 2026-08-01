@@ -1,34 +1,67 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Navigation } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
 import useInfo from "../data/information";
-import useInView from "../hooks/useInView";
 
 interface GalleryImage {
   url: string;
   caption: string;
+  category: string;
 }
 
-function GalleryItem({
-  img,
-  i,
-  onClick,
-}: {
-  img: GalleryImage;
-  i: number;
-  onClick: () => void;
-}) {
-  const { ref, inView } = useInView(0.1);
+interface GalleryRowProps {
+  category: string;
+  images: GalleryImage[];
+  onSelect: (img: GalleryImage) => void;
+}
+
+const CATEGORY_ORDER = ["room", "complex", "beach"];
+
+const CATEGORY_LABELS: Record<string, string> = {
+  room: "studio",
+  complex: "complex",
+  beach: "beach",
+};
+
+function GalleryRow({ category, images, onSelect }: GalleryRowProps) {
+  const { t } = useTranslation();
+
   return (
-    <div
-      ref={ref}
-      className={`gallery-item gallery-item-${i + 1} animate-fade-in-up delay-${Math.min((i % 8) + 1, 8)} ${inView ? "visible" : ""}`}
-      onClick={onClick}
-    >
-      <img src={img.url} alt={img.caption} loading="lazy" />
-      <div className="gallery-overlay">
-        <span className="gallery-caption">{img.caption}</span>
-        <span className="gallery-expand">View</span>
-      </div>
+    <div className="gallery-row gallery-fade-in">
+      <h3 className="gallery-row-title">
+        {t(CATEGORY_LABELS[category], category)}
+      </h3>
+      <Swiper
+        modules={[Autoplay, Navigation]}
+        navigation
+        autoplay={{ delay: 3000, disableOnInteraction: false }}
+        loop={true}
+        slidesPerView={1.5}
+        spaceBetween={16}
+        breakpoints={{
+          768: { slidesPerView: 2.5 },
+          1100: { slidesPerView: 3.5 },
+        }}
+        className="gallery-swiper"
+      >
+        {images.map((img, i) => (
+          <SwiperSlide key={i}>
+            <div className="gallery-slide" onClick={() => onSelect(img)}>
+              <img
+                src={img.url}
+                alt={img.caption}
+                className="gallery-slide-img"
+              />
+              <div className="gallery-slide-overlay">
+                <span className="gallery-slide-label">{img.caption}</span>
+              </div>
+            </div>
+          </SwiperSlide>
+        ))}
+      </Swiper>
     </div>
   );
 }
@@ -36,29 +69,37 @@ function GalleryItem({
 export default function Gallery() {
   const [selected, setSelected] = useState<GalleryImage | null>(null);
   const { galleryPage, galleryImages } = useInfo();
-  const { ref: headerRef, inView: headerInView } = useInView();
+  const images = galleryImages as GalleryImage[];
+
+  const grouped = useMemo(() => {
+    const map: Record<string, GalleryImage[]> = {};
+    for (const img of images) {
+      (map[img.category] ||= []).push(img);
+    }
+    return map;
+  }, [images]);
+
+  const categories = useMemo(
+    () => CATEGORY_ORDER.filter((cat) => grouped[cat]?.length),
+    [grouped],
+  );
 
   return (
     <section id="gallery" className="gallery">
       <div className="container">
-        <div
-          ref={headerRef}
-          className={`section-header animate-fade-in-up ${headerInView ? "visible" : ""}`}
-        >
+        <div className="section-header gallery-fade-in">
           <h2 className="section-title">{galleryPage.title}</h2>
           <p className="section-desc">{galleryPage.description}</p>
         </div>
 
-        <div className="gallery-grid">
-          {galleryImages.map((img, i) => (
-            <GalleryItem
-              key={i}
-              img={img}
-              i={i}
-              onClick={() => setSelected(img)}
-            />
-          ))}
-        </div>
+        {categories.map((cat) => (
+          <GalleryRow
+            key={cat}
+            category={cat}
+            images={grouped[cat]}
+            onSelect={setSelected}
+          />
+        ))}
       </div>
 
       {selected && (

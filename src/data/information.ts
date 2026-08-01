@@ -2,23 +2,21 @@ import { useTranslation } from "react-i18next";
 
 export default function useInfo() {
   const { t } = useTranslation();
-
   const maxGuests = 3;
   return {
     contact: {
       location: {
+        embed:
+          "https://www.google.com/maps/embed?pb=!1m13!1m8!1m3!1d5893.6147770565285!2d27.7014685!3d42.3892495!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zNDLCsDIzJzIxLjMiTiAyN8KwNDInMDUuMyJF!5e0!3m2!1sen!2sbg!4v1785590494254!5m2!1sen!2sbg",
         maps: "https://maps.app.goo.gl/jHkYXsp1XhXaSntE9",
-        text: t("key4", "Созопол"),
+        text: t("key4", "Созопол - Green life"),
       },
       phone: "088 266 2200",
       facebook: "https://www.facebook.com/profile.php?id=61591135034073",
     },
     homePage: {
       name: t("designStudiogreenLife", "Design Studio-Green life"),
-      description: t(
-        "greenLife",
-        "За незабравима почивка на море в комфортна и много уютна обстановка, заповядайте в Дизайн студио в комплекс Green life Созопол / Каваци",
-      ),
+      description: t("key3", "An atmosphere crafted for unforgettable moments"),
     },
     aboutPage: {
       greeting: t("key", "Насладете се на спокойствие, комфорт и море"),
@@ -108,8 +106,9 @@ export default function useInfo() {
       { url: "room/4.jpg", caption: t("room", "Room") },
       { url: "room/bathroom.jpg", caption: t("bathroom", "Bathroom") },
     ].map((g) => {
+      const category = g.url.split("/")[0];
       g.url = `gallery/${g.url}`;
-      return g;
+      return { ...g, category };
     }),
     amenities: [
       {
