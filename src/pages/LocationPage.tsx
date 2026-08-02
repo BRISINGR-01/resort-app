@@ -2,12 +2,10 @@ import { useTranslation } from "react-i18next";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import useInfo from "../data/information";
-import useInView from "../hooks/useInView";
 
 export default function LocationPage() {
   const { t } = useTranslation();
   const { contact } = useInfo();
-  const { ref, inView } = useInView();
 
   return (
     <>
@@ -16,10 +14,7 @@ export default function LocationPage() {
       <section className="location">
         <div className="container">
           <div className="location-container">
-            <div
-              ref={ref}
-              className={`location-info animate-fade-in-up ${inView ? "visible" : ""}`}
-            >
+            <div className={`location-info animate-fade-in-up `}>
               <h1 className="location-header">{t("location", "Location")}</h1>
               <p className="location-sentence">
                 {t(
@@ -40,9 +35,7 @@ export default function LocationPage() {
               </a>
             </div>
 
-            <div
-              className={`location-map animate-fade-in-up ${inView ? "visible delay-1" : ""}`}
-            >
+            <div className={`location-map animate-fade-in-up`}>
               <iframe
                 title="Google Maps"
                 src={contact.location.embed}

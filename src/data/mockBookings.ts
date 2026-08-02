@@ -117,15 +117,20 @@ const mockBookings = {
     return { data: rows, error: null };
   },
 
-  async getBookedDates(): Promise<{ start: Date; end: Date }[]> {
+  async getBookedDates(): Promise<
+    SupabaseResponse<{ start: Date; end: Date }[]>
+  > {
     const today = clearTime(new Date());
 
-    return bookings
-      .filter((d) => d.end_date >= today)
-      .map((d) => ({
-        start: d.start_date,
-        end: d.end_date,
-      }));
+    return {
+      error: null,
+      data: bookings
+        .filter((d) => d.end_date >= today)
+        .map((d) => ({
+          start: d.start_date,
+          end: d.end_date,
+        })),
+    };
   },
 };
 

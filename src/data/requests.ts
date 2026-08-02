@@ -4,6 +4,24 @@ import mockBookings from "./mockBookings";
 import { setBookingsRef } from "./mockRequests";
 import type { Request, RequestPayload, SupabaseResponse } from "./types";
 
+interface Requests {
+  list(): Promise<SupabaseResponse<Request[]>>;
+  getPending(): Promise<SupabaseResponse<Request[]>>;
+  getRejected(): Promise<SupabaseResponse<Request[]>>;
+  get(id: string): Promise<SupabaseResponse<Request>>;
+  create({
+    client_name,
+    start_date,
+    end_date,
+    guests_amount,
+    note,
+    phone,
+    email,
+  }: RequestPayload): Promise<SupabaseResponse<Request>>;
+  accept(id: string): Promise<SupabaseResponse<Request>>;
+  reject(id: string): Promise<SupabaseResponse<Request>>;
+}
+
 const TABLE = "design-studio-green-life-requests";
 const BOOKINGS_TABLE = "design-studio-green-life-bookings";
 
@@ -11,7 +29,7 @@ if (import.meta.env.DEV) {
   setBookingsRef(mockBookings);
 }
 
-const realRequests = {
+const requests: Requests = {
   async list(): Promise<SupabaseResponse<Request[]>> {
     return supabase
       .from(TABLE)
@@ -92,6 +110,4 @@ const realRequests = {
   },
 };
 
-const requests = import.meta.env.DEV ? mockRequests : realRequests;
-
-export default requests;
+export default import.meta.env.DEV ? mockRequests : requests;

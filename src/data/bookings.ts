@@ -1,15 +1,28 @@
 import supabase from "./supabase";
 import mockBookings from "./mockBookings";
-import buildAvailability from "./buildAvailability";
-import type {
-  Booking,
-  BookingPayload,
-  SupabaseResponse,
-  AvailabilityMonth,
-} from "./types";
+import type { Booking, BookingPayload, SupabaseResponse } from "./types";
 import { clearTime } from "../pages/admin/utils";
 
 const TABLE = "design-studio-green-life-bookings";
+
+interface Bookings {
+  list(): Promise<SupabaseResponse<Booking[]>>;
+  get(id: string): Promise<SupabaseResponse<Booking>>;
+  create({
+    client_name,
+    start_date,
+    end_date,
+    guests_amount,
+    note,
+  }: BookingPayload): Promise<SupabaseResponse<Booking>>;
+  update(
+    id: string,
+    patch: Partial<BookingPayload>,
+  ): Promise<SupabaseResponse<Booking>>;
+  remove(id: string): Promise<SupabaseResponse<Booking>>;
+  query(filters: Record<string, unknown>): Promise<SupabaseResponse<Booking[]>>;
+  getBookedDates(): Promise<SupabaseResponse<{ start: Date; end: Date }[]>>;
+}
 
 const realBookings = {
   async list(): Promise<SupabaseResponse<Booking[]>> {
@@ -60,20 +73,27 @@ const realBookings = {
     return builder;
   },
 
-  async getBookedDates(): Promise<{ start: Date; end: Date }[]> {
-    const { data } = await supabase.from(TABLE).select("start_date, end_date");
-    if (!data) return [];
+  async getBookedDates(): Promise<
+    SupabaseResponse<{ start: Date; end: Date }[]>
+  > {
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select("start_date, end_date");
+    if (!data) return { data, error };
 
     const today = new Date();
-    return data
-      .filter((d) => d.end_date > today)
-      .map((d) => ({
-        start: d.start_date,
-        end: d.end_date,
-      }));
+    return {
+      error: null,
+      data: data
+        .filter((d) => d.end_date > today)
+        .map((d) => ({
+          start: d.start_date,
+          end: d.end_date,
+        })),
+    };
   },
 };
 
-const bookings = import.meta.env.DEV ? mockBookings : realBookings;
+const bookings: Bookings = import.meta.env.DEV ? mockBookings : realBookings;
 
 export default bookings;

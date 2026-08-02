@@ -8,6 +8,7 @@ import ReservationPage from "./pages/ReservationPage";
 import ContactPage from "./pages/ContactPage";
 import LocationPage from "./pages/LocationPage";
 import Admin from "./pages/Admin";
+import { ToastProvider } from "./components/Toast";
 import "react-phone-input-2/lib/style.css";
 import "./App.css";
 
@@ -24,18 +25,20 @@ function Home() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <div className="App">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/gallery" element={<GalleryPage />} />
-          <Route path="/reservation" element={<ReservationPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/location" element={<LocationPage />} />
-          <Route path="/admin" element={<Admin />} />
-        </Routes>
-      </div>
-    </BrowserRouter>
+    <ToastProvider>
+      <BrowserRouter>
+        <div className="App">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/reservation" element={<ReservationPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/location" element={<LocationPage />} />
+            <Route path="/admin" element={<Admin />} />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </ToastProvider>
   );
 }
 

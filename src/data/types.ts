@@ -64,3 +64,8 @@ export interface BookingFormData {
   note: string;
   dates: string;
 }
+
+export interface PricesData {
+  price: number;
+  date: Date;
+}

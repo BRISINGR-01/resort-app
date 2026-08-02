@@ -48,6 +48,7 @@ export default function useInfo() {
       ),
     },
     maxGuests,
+    defaultPrice: 120,
     galleryImages: [
       {
         url: "room/2.jpg",

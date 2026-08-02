@@ -7,28 +7,34 @@ import {
 import "@demark-pro/react-booking-calendar/dist/react-booking-calendar.css";
 import { useTranslation } from "react-i18next";
 import { clearTime, useMonthNames } from "../pages/admin/utils";
-import useInView from "../hooks/useInView";
 import Loader from "./Loader";
 import BookingDayContent from "./BookingDayContent";
+import { useToast } from "./Toast";
+import type { PricesData } from "../data/types";
+import prices from "../data/prices";
+import useInfo from "../data/information";
 
 const today = clearTime(new Date());
 const currYear = today.getFullYear();
 const currMonth = today.getMonth() as CalendarMonth;
 const years = [currYear, currYear + 1, currYear + 2];
 
+const prevMonth = (m: number) => (m === 0 ? 11 : m - 1);
+const nextMonth = (m: number) => (m === 11 ? 0 : m + 1);
+
 function calcReserved(
   selectedMonth: number,
   bookedRanges: { start: Date; end: Date }[],
 ) {
-  const prevMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
-  const nextMonth = selectedMonth === 11 ? 0 : selectedMonth + 1;
+  const prevM = prevMonth(selectedMonth);
+  const nextM = nextMonth(selectedMonth);
 
   return bookedRanges
     .filter((b) => {
       const min = Math.min(b.start.getMonth(), b.end.getMonth());
       const max = Math.max(b.start.getMonth(), b.end.getMonth());
 
-      return min >= prevMonth || max <= nextMonth;
+      return min >= prevM || max <= nextM;
     })
     .map((b) => ({
       startDate: b.start,
@@ -39,30 +45,59 @@ function calcReserved(
 
 export default function Availability() {
   const monthNames = useMonthNames();
+  const { t } = useTranslation();
+  const { toastError } = useToast();
+  const { defaultPrice } = useInfo();
   const [bookedRanges, setBookedRanges] = useState<
     { start: Date; end: Date }[]
   >([]);
   const [selectedYear, setSelectedYear] = useState<number>(currYear);
   const [selectedMonth, setSelectedMonth] = useState<CalendarMonth>(currMonth);
-  const { t } = useTranslation();
-  const { ref: cardRef, inView: cardInView } = useInView();
+  const [dayPrices, setDayPrices] = useState<PricesData[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    bookings.getBookedDates().then(setBookedRanges);
-  }, []);
+    setLoading(true);
+
+    bookings.getBookedDates().then(({ data: ranges, error }) => {
+      if (error) {
+        toastError(
+          error?.message ||
+            t("failedToLoadAvailability", "Failed to load availability"),
+        );
+      } else {
+        setBookedRanges(ranges ?? []);
+      }
+      setLoading(false);
+    });
+  }, [toastError, t]);
+
+  useEffect(() => {
+    prices
+      .getPrices(
+        new Date(1, prevMonth(selectedMonth), selectedYear),
+        new Date(1, nextMonth(selectedMonth), selectedYear),
+      )
+      .then(({ data, error }) => {
+        if (error) {
+          toastError(
+            error.message || t("failedToLoadPrices", "Failed to load prices"),
+          );
+        } else {
+          setDayPrices(data ?? []);
+        }
+      });
+  }, [selectedMonth, selectedYear, toastError, t]);
 
   const reserved = useMemo<{ startDate: Date; endDate: Date; color: string }[]>(
     () => calcReserved(selectedMonth, bookedRanges),
-    [selectedYear, selectedMonth, cardInView],
+    [selectedYear, selectedMonth, bookedRanges],
   );
 
   return (
     <section id="availability" className="availability">
       <div className="container">
-        <div
-          ref={cardRef}
-          className={`pricing-card animate-fade-in-up ${cardInView ? "visible" : ""}`}
-        >
+        <div className="pricing-card animate-fade-in">
           <div className="avail-controls">
             <div className="avail-select-group">
               <select
@@ -99,7 +134,9 @@ export default function Availability() {
           </div>
 
           <div className="avail-calendar">
-            {bookedRanges.length !== 0 ? (
+            {loading ? (
+              Loader()
+            ) : (
               <Calendar
                 className="avail-booking-calendar"
                 selected={[]}
@@ -115,15 +152,16 @@ export default function Availability() {
                 }}
                 options={{ weekStartsOn: 0, useAttributes: true }}
                 disabled={() => true}
-                components={{ DayContent: BookingDayContent }}
+                components={{
+                  DayContent: (props) =>
+                    BookingDayContent({ ...props, dayPrices, defaultPrice }),
+                }}
                 classNames={{
                   MonthArrowBack: "avail-cal-arrow",
                   MonthArrowNext: "avail-cal-arrow",
                   MonthContent: "avail-cal-month",
                 }}
               />
-            ) : (
-              Loader()
             )}
           </div>
 
