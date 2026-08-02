@@ -1,11 +1,19 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  Calendar,
+  type CalendarMonth,
+  type CalendarReserved,
+  type DayContainerProps,
+  type DayContentProps,
+} from "@demark-pro/react-booking-calendar";
+import "@demark-pro/react-booking-calendar/dist/react-booking-calendar.css";
 import bookings from "../../data/bookings";
-import { formatDate, useDayLabels, useMonthNames } from "./utils";
-import CalendarGrid from "../../components/CalendarGrid";
+import { formatDate } from "./utils";
 import EditBookingModal from "./EditBookingModal";
 import type { Booking } from "../../data/types";
 import { useTranslation } from "react-i18next";
 import Loader from "../../components/Loader";
+import BookingDayContent from "../../components/BookingDayContent";
 
 interface VisitorColor {
   bg: string;
@@ -32,8 +40,6 @@ export default function CalendarTab() {
   const [viewMonth, setViewMonth] = useState(now.getMonth());
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [editing, setEditing] = useState<Booking | null>(null);
-  const monthNames = useMonthNames();
-  const dayLabels = useDayLabels();
 
   const loadBookings = useCallback(() => {
     bookings.list().then(({ data }) => {
@@ -46,13 +52,14 @@ export default function CalendarTab() {
     loadBookings();
   }, [loadBookings]);
 
-  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-
-  const bookingsInView = allBookings.filter((b) => {
+  const bookingsInView = useMemo(() => {
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
     const monthStart = new Date(viewYear, viewMonth, 1);
     const monthEnd = new Date(viewYear, viewMonth, daysInMonth);
-    return b.start_date <= monthEnd && b.end_date >= monthStart;
-  });
+    return allBookings.filter(
+      (b) => b.start_date <= monthEnd && b.end_date >= monthStart,
+    );
+  }, [allBookings, viewMonth, viewYear]);
 
   const colorMap = useMemo(() => {
     const map: Record<string, VisitorColor> = {};
@@ -62,89 +69,129 @@ export default function CalendarTab() {
     return map;
   }, [bookingsInView]);
 
-  const prevMonth = () => {
-    if (viewMonth === 0) {
-      setViewMonth(11);
-      setViewYear((y) => y - 1);
-    } else setViewMonth((m) => m - 1);
-  };
+  const reserved = useMemo<CalendarReserved[]>(
+    () =>
+      bookingsInView.map((b) => ({
+        startDate: b.start_date,
+        endDate: b.end_date,
+        color: colorMap[b.id]?.bar ?? "#5a8a4e",
+      })),
+    [bookingsInView, colorMap],
+  );
 
-  const nextMonth = () => {
-    if (viewMonth === 11) {
-      setViewMonth(0);
-      setViewYear((y) => y + 1);
-    } else setViewMonth((m) => m + 1);
-  };
+  const openDay = useCallback(
+    (date: Date) => {
+      const day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const found = allBookings.find(
+        (b) => b.start_date <= day && b.end_date >= day,
+      );
+      if (found) setEditing(found);
+    },
+    [allBookings],
+  );
+
+  const AdminDayContainer = useCallback(
+    ({
+      date,
+      state,
+      children,
+      innerProps,
+      getClassNames,
+    }: DayContainerProps) => {
+      const { className = "", ...restInner } = innerProps ?? {};
+      const attributes = {
+        ...((state.isSelected || state.isSelectedStart || state.isSelectedEnd)
+          ? { "data-selected": true }
+          : {}),
+        ...(state.isReserved ? { "data-reserved": true } : {}),
+        ...(state.isPast ? { "data-past": true } : {}),
+        ...(state.isStartMonth ? { "data-start-month": true } : {}),
+        ...(state.isEndMonth ? { "data-end-month": true } : {}),
+      };
+      return (
+        <div
+          aria-label={date.toDateString()}
+          role="option"
+          tabIndex={-1}
+          className={getClassNames("DayContainer", className)}
+          onClick={() => openDay(date)}
+          {...attributes}
+          {...restInner}
+        >
+          {children}
+        </div>
+      );
+    },
+    [openDay],
+  );
+
+  const AdminDayContent = useCallback(
+    (props: DayContentProps) => {
+      const { date, state, children, ...rest } = props;
+      const day = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+      );
+      const dayBookings = bookingsInView.filter(
+        (b) => b.start_date <= day && b.end_date >= day,
+      );
+      return (
+        <BookingDayContent date={date} state={state} {...rest}>
+          {children}
+          {state.isSameMonth && dayBookings.length > 0 && (
+            <div className="admin-cal-bookings">
+              {dayBookings.map((b) => {
+                const c = colorMap[b.id];
+                return (
+                  <div
+                    key={b.id}
+                    className="admin-cal-booking-bar"
+                    style={{ backgroundColor: c.bar, color: "#fff" }}
+                    title={t(
+                      "client_nameStart_dateEnd_date",
+                      "{{client_name}}: {{start_date}} → {{end_date}}",
+                      {
+                        client_name: b.client_name,
+                        start_date: b.start_date,
+                        end_date: b.end_date,
+                      },
+                    )}
+                  >
+                    <span className="admin-cal-booking-name">
+                      {b.client_name}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </BookingDayContent>
+      );
+    },
+    [bookingsInView, colorMap, t],
+  );
 
   if (loading) return Loader();
 
   return (
     <div className="admin-tab-content">
       <div className="admin-calendar">
-        <CalendarGrid
+        <Calendar
+          className="admin-booking-calendar"
+          selected={[]}
+          reserved={reserved}
+          onChange={() => {}}
+          month={viewMonth as CalendarMonth}
           year={viewYear}
-          month={viewMonth}
-          dayLabels={dayLabels}
-          weekStart="mon"
-          showNav
-          title={t("valViewyear", "{{val}} {{viewYear}}", {
-            val: monthNames[viewMonth],
-            viewYear,
-          })}
-          onPrev={prevMonth}
-          onNext={nextMonth}
-          renderDay={(day) => {
-            const dayAsDate = new Date(viewYear, viewMonth, day);
-            const bookingsOnDay = bookingsInView.filter(
-              (b) => b.start_date <= dayAsDate && b.end_date >= dayAsDate,
-            );
-            const isToday =
-              new Date().getDate() === day &&
-              new Date().getMonth() === viewMonth &&
-              new Date().getFullYear() === viewYear;
-            const primary = bookingsOnDay[0]
-              ? colorMap[bookingsOnDay[0].id]
-              : null;
-            const isBooked = bookingsOnDay.length > 0;
-
-            return (
-              <div
-                className={`admin-cal-cell ${isToday ? "admin-cal-today" : ""} ${isBooked ? "admin-cal-booked" : ""}`}
-                style={primary ? { backgroundColor: primary.bg } : undefined}
-                onClick={
-                  isBooked ? () => setEditing(bookingsOnDay[0]) : undefined
-                }
-              >
-                <span className="admin-cal-day-num">{day}</span>
-                {isBooked && (
-                  <div className="admin-cal-bookings">
-                    {bookingsOnDay.map((b) => {
-                      const c = colorMap[b.id];
-                      return (
-                        <div
-                          key={b.id}
-                          className="admin-cal-booking-bar"
-                          style={{ backgroundColor: c.bar, color: "#fff" }}
-                          title={t(
-                            "client_nameStart_dateEnd_date",
-                            "{{client_name}}: {{start_date}} → {{end_date}}",
-                            {
-                              client_name: b.client_name,
-                              start_date: b.start_date,
-                              end_date: b.end_date,
-                            },
-                          )}
-                        >
-                          <span className="admin-cal-booking-name">
-                            {b.client_name}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
+          onMonthChange={(m, y) => {
+            setViewMonth(m);
+            setViewYear(y);
+          }}
+          options={{ weekStartsOn: 1, useAttributes: true }}
+          components={{
+            DayContent: AdminDayContent,
+            DayContainer: AdminDayContainer,
           }}
         />
 

@@ -48,7 +48,6 @@ export default function useInfo() {
       ),
     },
     maxGuests,
-
     galleryImages: [
       {
         url: "room/2.jpg",
@@ -67,6 +66,8 @@ export default function useInfo() {
         caption: t("resortPool", "Resort Pool"),
       },
       { url: "beach/3.jpg", caption: t("beach", "Beach") },
+      { url: "beach/4.jpg", caption: t("beach", "Beach") },
+      { url: "beach/5.jpg", caption: t("beach", "Beach") },
       {
         url: "complex/pool-2.jpg",
         caption: t("resortPool", "Resort Pool"),
