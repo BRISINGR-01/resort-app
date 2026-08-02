@@ -51,14 +51,6 @@ const mockBookings = {
     return { data: [...bookings], error: null };
   },
 
-  async get(id: string): Promise<SupabaseResponse<Booking>> {
-    const row = bookings.find((b) => b.id === id);
-    return {
-      data: row ? { ...row } : null,
-      error: row ? null : { message: i18next.t("notFound", "Not found") },
-    };
-  },
-
   async create({
     client_name,
     start_date,
@@ -105,31 +97,14 @@ const mockBookings = {
     return { data: { ...deleted }, error: null };
   },
 
-  async query(
-    filters: Record<string, unknown>,
-  ): Promise<SupabaseResponse<Booking[]>> {
-    let rows = [...bookings];
-    for (const [key, value] of Object.entries(filters)) {
-      rows = rows.filter(
-        (r) => (r as unknown as Record<string, unknown>)[key] === value,
-      );
-    }
-    return { data: rows, error: null };
-  },
-
   async getBookedDates(): Promise<
-    SupabaseResponse<{ start: Date; end: Date }[]>
+    SupabaseResponse<{ start_date: Date; end_date: Date }[]>
   > {
     const today = clearTime(new Date());
 
     return {
       error: null,
-      data: bookings
-        .filter((d) => d.end_date >= today)
-        .map((d) => ({
-          start: d.start_date,
-          end: d.end_date,
-        })),
+      data: bookings.filter((d) => d.end_date >= today),
     };
   },
 };

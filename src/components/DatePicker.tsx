@@ -1,50 +1,14 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Calendar,
+  type CalendarDayState,
+  type CalendarMonth,
+  type DayContainerProps,
+} from "@demark-pro/react-booking-calendar";
+import "@demark-pro/react-booking-calendar/dist/react-booking-calendar.css";
 import bookings from "../data/bookings";
-import type { Status } from "../data/types";
 import { useTranslation } from "react-i18next";
-import { useMonthNames } from "../pages/admin/utils";
-
-const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-interface AvailabilityEntry {
-  month: string;
-  days: Status[];
-}
-
-function buildDateMap(
-  availability: AvailabilityEntry[],
-  monthNames: string[],
-  prevoiuslySelected?: [Date | null, Date | null],
-): Record<string, Status> {
-  const map: Record<string, Status> = {};
-  for (const entry of availability) {
-    const [monthName, yearStr] = entry.month.split(" ");
-    const monthNum = monthNames.indexOf(monthName);
-    const year = parseInt(yearStr);
-    entry.days.forEach((status, i) => {
-      const d = new Date(year, monthNum, i + 1);
-
-      if (
-        prevoiuslySelected &&
-        prevoiuslySelected[0] &&
-        prevoiuslySelected[1] &&
-        d >= prevoiuslySelected[0] &&
-        d <= prevoiuslySelected[1]
-      ) {
-        status = "previously-selected";
-      }
-
-      const key = d.toISOString().slice(0, 10);
-      map[key] = status;
-    });
-  }
-
-  return map;
-}
-
-function dateToKey(date: Date): string {
-  return date.toISOString().slice(0, 10);
-}
+import { clearTime } from "../pages/admin/utils";
 
 function formatShort(date: Date): string {
   return date.toLocaleDateString("en-US", {
@@ -54,10 +18,9 @@ function formatShort(date: Date): string {
   });
 }
 
-function getMonthMeta(year: number, month: number) {
-  const firstDay = new Date(year, month, 1).getDay();
-  const totalDays = new Date(year, month + 1, 0).getDate();
-  return { firstDay, totalDays };
+interface BookedRange {
+  start: Date;
+  end: Date;
 }
 
 interface CalendarModalProps {
@@ -66,7 +29,8 @@ interface CalendarModalProps {
   onConfirm: (checkIn: Date | null, checkOut: Date | null) => void;
   initialCheckIn: Date | null;
   initialCheckOut: Date | null;
-  dateMap: Record<string, Status>;
+  bookedRanges: BookedRange[];
+  previouslySelected?: [Date | null, Date | null];
 }
 
 function CalendarModal({
@@ -75,117 +39,127 @@ function CalendarModal({
   onConfirm,
   initialCheckIn,
   initialCheckOut,
-  dateMap,
+  bookedRanges,
+  previouslySelected,
 }: CalendarModalProps) {
   const { t } = useTranslation();
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = useMemo(() => clearTime(new Date()), []);
 
-  const [viewMonth, setViewMonth] = useState(today.getMonth());
-  const [viewYear, setViewYear] = useState(today.getFullYear());
+  const [viewMonth, setViewMonth] = useState<CalendarMonth>(
+    (initialCheckIn ?? new Date()).getMonth() as CalendarMonth,
+  );
+  const [viewYear, setViewYear] = useState(
+    (initialCheckIn ?? new Date()).getFullYear(),
+  );
   const [checkIn, setCheckIn] = useState<Date | null>(initialCheckIn);
   const [checkOut, setCheckOut] = useState<Date | null>(initialCheckOut);
-  const [selecting, setSelecting] = useState<"checkin" | "checkout">("checkin");
-  const monthNames = useMonthNames();
 
   useEffect(() => {
-    if (open) {
-      setCheckIn(initialCheckIn);
-      setCheckOut(initialCheckOut);
-      setSelecting("checkin");
-      if (initialCheckIn) {
-        setViewMonth(initialCheckIn.getMonth());
-        setViewYear(initialCheckIn.getFullYear());
-      } else {
-        const now = new Date();
-        setViewMonth(now.getMonth());
-        setViewYear(now.getFullYear());
-      }
-    }
+    if (!open) return;
+    setCheckIn(initialCheckIn);
+    setCheckOut(initialCheckOut);
+    const base = initialCheckIn ?? new Date();
+    setViewMonth(base.getMonth() as CalendarMonth);
+    setViewYear(base.getFullYear());
   }, [open, initialCheckIn, initialCheckOut]);
 
-  const goToPrev = () => {
-    setViewMonth((m) => {
-      if (m === 0) {
-        setViewYear((y) => y - 1);
-        return 11;
-      }
-      return m - 1;
-    });
-  };
+  const isPreviouslySelected = useCallback(
+    (date: Date) => {
+      const d = clearTime(new Date(date));
+      if (!previouslySelected?.[0] || !previouslySelected?.[1]) return false;
+      return d >= clearTime(previouslySelected[0]) && d <= clearTime(previouslySelected[1]);
+    },
+    [previouslySelected],
+  );
 
-  const goToNext = () => {
-    setViewMonth((m) => {
-      if (m === 11) {
-        setViewYear((y) => y + 1);
-        return 0;
-      }
-      return m + 1;
-    });
-  };
+  const isBooked = useCallback(
+    (date: Date) => {
+      const d = clearTime(new Date(date));
+      return bookedRanges.some(
+        (b) => d >= clearTime(new Date(b.start)) && d <= clearTime(new Date(b.end)),
+      );
+    },
+    [bookedRanges],
+  );
 
-  const handleDayClick = (day: number) => {
-    const date = new Date(viewYear, viewMonth, day);
-    date.setHours(0, 0, 0, 0);
-    const key = dateToKey(date);
-    if (date < today) return;
-    if (dateMap[key] === "booked") return;
+  const disabled = useCallback(
+    (date: Date, state: CalendarDayState) => {
+      if (!state.isSameMonth) return true;
+      if (isPreviouslySelected(date)) return false;
+      const d = clearTime(new Date(date));
+      if (d < today) return true;
+      return isBooked(d);
+    },
+    [today, isBooked, isPreviouslySelected],
+  );
 
-    if (selecting === "checkin") {
-      setCheckIn(date);
-      setCheckOut(null);
-      setSelecting("checkout");
-    } else {
-      if (date <= checkIn!) {
-        setCheckIn(date);
+  const reserved = useMemo(() => {
+    const [ps, pe] = previouslySelected ?? [null, null];
+    return bookedRanges
+      .filter((b) => {
+        if (!ps || !pe) return true;
+        const start = clearTime(new Date(b.start));
+        const end = clearTime(new Date(b.end));
+        return !(start <= clearTime(pe) && end >= clearTime(ps));
+      })
+      .map((b) => ({ startDate: b.start, endDate: b.end, color: "#ffffff" }));
+  }, [bookedRanges, previouslySelected]);
+
+  const handleDayClick = useCallback(
+    (date: Date, state: CalendarDayState) => {
+      if (state.isDisabled) return;
+      const d = clearTime(new Date(date));
+
+      if (!checkIn || (checkIn && checkOut)) {
+        setCheckIn(d);
         setCheckOut(null);
-        setSelecting("checkout");
+      } else if (d <= checkIn) {
+        setCheckIn(d);
       } else {
-        setCheckOut(date);
-        setSelecting("checkin");
+        setCheckOut(d);
       }
-    }
-  };
+    },
+    [checkIn, checkOut],
+  );
+
+  const DayContainer = useCallback(
+    ({ date, state, children, innerProps, getClassNames }: DayContainerProps) => {
+      const { className = "", ...restInner } = innerProps ?? {};
+      const attributes = {
+        ...(state.isSelected || state.isSelectedStart || state.isSelectedEnd
+          ? { "data-selected": true }
+          : {}),
+        ...(state.isSelectedStart ? { "data-selected-start": true } : {}),
+        ...(state.isSelectedEnd ? { "data-selected-end": true } : {}),
+        ...(state.isDisabled ? { "data-disabled": true } : {}),
+        ...(state.isReserved ? { "data-reserved": true } : {}),
+        ...(isPreviouslySelected(date) ? { "data-previously-selected": true } : {}),
+      };
+      return (
+        <div
+          className={getClassNames("DayContainer", className)}
+          {...attributes}
+          {...restInner}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDayClick(date, state);
+          }}
+        >
+          {children}
+        </div>
+      );
+    },
+    [handleDayClick, isPreviouslySelected],
+  );
 
   const handleConfirm = () => {
     onConfirm(checkIn, checkOut);
     onClose();
   };
 
-  const isPast = (day: number) => {
-    const d = new Date(viewYear, viewMonth, day);
-    d.setHours(0, 0, 0, 0);
-    return d < today;
-  };
-
-  const isBooked = (day: number) => {
-    const key = dateToKey(new Date(viewYear, viewMonth, day));
-    return !!(key && dateMap[key] === "booked");
-  };
-
-  const isSelected = (day: number) => {
-    const d = new Date(viewYear, viewMonth, day);
-    d.setHours(0, 0, 0, 0);
-    if (checkIn && d.getTime() === checkIn.getTime()) return true;
-    if (checkOut && d.getTime() === checkOut.getTime()) return true;
-    return false;
-  };
-
-  const isInRange = (day: number) => {
-    if (!checkIn || !checkOut) return false;
-    const d = new Date(viewYear, viewMonth, day);
-    d.setHours(0, 0, 0, 0);
-    return d > checkIn && d < checkOut;
-  };
-
-  const wasSelected = (day: number) => {
-    const d = new Date(viewYear, viewMonth, day);
-    return dateMap[dateToKey(d)] === "previously-selected";
-  };
+  const selecting: "checkin" | "checkout" = checkIn && !checkOut ? "checkout" : "checkin";
 
   if (!open) return null;
-
-  const { firstDay, totalDays } = getMonthMeta(viewYear, viewMonth);
 
   return (
     <div className="cdp-overlay" onClick={onClose}>
@@ -221,89 +195,22 @@ function CalendarModal({
           </div>
         </div>
 
-        <div className="cdp-nav">
-          <button
-            className="cdp-nav-btn"
-            onClick={goToPrev}
-            type="button"
-            aria-label="Previous month"
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
-          <span className="cdp-month-title">
-            {monthNames[viewMonth]} {viewYear}
-          </span>
-          <button
-            className="cdp-nav-btn"
-            onClick={goToNext}
-            aria-label="Next month"
-            type="button"
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="cdp-weekdays">
-          {DAY_LABELS.map((d) => (
-            <span key={d} className="cdp-weekday">
-              {d}
-            </span>
-          ))}
-        </div>
-
-        <div className="cdp-days">
-          {Array.from({ length: firstDay }, (_, i) => (
-            <span key={`empty-${i}`} className="cdp-day cdp-day-empty" />
-          ))}
-          {Array.from({ length: totalDays }, (_, i) => {
-            const day = i + 1;
-            const past = isPast(day);
-            const selected = isSelected(day);
-            const inRange = isInRange(day);
-            const previouslySelected = wasSelected(day);
-            const booked = isBooked(day) && !previouslySelected;
-            const disabled = (past || booked) && !previouslySelected;
-
-            let cls = "cdp-day";
-            if (disabled) cls += " cdp-day-disabled";
-            if (selected) cls += " cdp-day-selected";
-            if (inRange) cls += " cdp-day-in-range";
-            if (previouslySelected) cls += " cdp-day-previously-selected";
-
-            return (
-              <button
-                key={day}
-                className={cls}
-                onClick={() => !disabled && handleDayClick(day)}
-                disabled={disabled}
-                type="button"
-              >
-                {day}
-              </button>
-            );
-          })}
+        <div className="cdp-calendar">
+          <Calendar
+            className="cdp-booking-calendar"
+            selected={[checkIn ?? null, checkOut ?? null]}
+            reserved={reserved}
+            disabled={disabled}
+            onChange={() => {}}
+            month={viewMonth}
+            year={viewYear}
+            onMonthChange={(m, y) => {
+              setViewMonth(m);
+              setViewYear(y);
+            }}
+            options={{ weekStartsOn: 1, useAttributes: true }}
+            components={{ DayContainer }}
+          />
         </div>
 
         <div className="cdp-actions">
@@ -335,15 +242,12 @@ export default function DatePicker({
   const [checkIn, setCheckIn] = useState<Date | null>(defaultVal[0] ?? null);
   const [checkOut, setCheckOut] = useState<Date | null>(defaultVal[1] ?? null);
   const [open, setOpen] = useState(false);
-  const [dateMap, setDateMap] = useState<Record<string, Status>>({});
-  const monthNames = useMonthNames();
+  const [bookedRanges, setBookedRanges] = useState<BookedRange[]>([]);
 
   useEffect(() => {
-    bookings
-      .availability(monthNames)
-      .then((avail: AvailabilityEntry[]) =>
-        setDateMap(buildDateMap(avail, monthNames, prevoiuslySelected)),
-      );
+    bookings.getBookedDates().then(({ data }) => {
+      setBookedRanges(data ?? []);
+    });
   }, []);
 
   const handleConfirm = (ci: Date | null, co: Date | null) => {
@@ -411,7 +315,8 @@ export default function DatePicker({
         onConfirm={handleConfirm}
         initialCheckIn={checkIn}
         initialCheckOut={checkOut}
-        dateMap={dateMap}
+        bookedRanges={bookedRanges}
+        previouslySelected={prevoiuslySelected}
       />
     </>
   );

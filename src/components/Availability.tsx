@@ -24,21 +24,21 @@ const nextMonth = (m: number) => (m === 11 ? 0 : m + 1);
 
 function calcReserved(
   selectedMonth: number,
-  bookedRanges: { start: Date; end: Date }[],
+  bookedRanges: { start_date: Date; end_date: Date }[],
 ) {
   const prevM = prevMonth(selectedMonth);
   const nextM = nextMonth(selectedMonth);
 
   return bookedRanges
     .filter((b) => {
-      const min = Math.min(b.start.getMonth(), b.end.getMonth());
-      const max = Math.max(b.start.getMonth(), b.end.getMonth());
+      const min = Math.min(b.start_date.getMonth(), b.end_date.getMonth());
+      const max = Math.max(b.start_date.getMonth(), b.end_date.getMonth());
 
       return min >= prevM || max <= nextM;
     })
     .map((b) => ({
-      startDate: b.start,
-      endDate: b.end,
+      startDate: b.start_date,
+      endDate: b.end_date,
       color: "white",
     }));
 }
@@ -49,10 +49,11 @@ export default function Availability() {
   const { toastError } = useToast();
   const { defaultPrice } = useInfo();
   const [bookedRanges, setBookedRanges] = useState<
-    { start: Date; end: Date }[]
+    { start_date: Date; end_date: Date }[]
   >([]);
   const [selectedYear, setSelectedYear] = useState<number>(currYear);
   const [selectedMonth, setSelectedMonth] = useState<CalendarMonth>(currMonth);
+
   const [dayPrices, setDayPrices] = useState<PricesData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -67,6 +68,7 @@ export default function Availability() {
         );
       } else {
         setBookedRanges(ranges ?? []);
+        console.log(ranges);
       }
       setLoading(false);
     });
@@ -75,8 +77,8 @@ export default function Availability() {
   useEffect(() => {
     prices
       .getPrices(
-        new Date(1, prevMonth(selectedMonth), selectedYear),
-        new Date(1, nextMonth(selectedMonth), selectedYear),
+        new Date(selectedYear, prevMonth(selectedMonth), 1),
+        new Date(selectedYear, nextMonth(selectedMonth), 1),
       )
       .then(({ data, error }) => {
         if (error) {

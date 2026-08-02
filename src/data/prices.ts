@@ -1,6 +1,6 @@
 import supabase from "./supabase";
 import type { PricesData, SupabaseResponse } from "./types";
-import { clearTime } from "../pages/admin/utils";
+import { clearTime, formatDate } from "../pages/admin/utils";
 
 const TABLE = "design-studio-green-life-prices";
 
@@ -28,19 +28,16 @@ const prices: Prices = import.meta.env.DEV
         from: Date,
         to: Date,
       ): Promise<SupabaseResponse<PricesData[]>> {
-        from = clearTime(from);
-        to = clearTime(to);
-
         const res: SupabaseResponse<PricesData[]> = await supabase
           .from(TABLE)
           .select("*")
-          .gte("date", from)
-          .lte("date", to);
+          .gte("date", formatDate(clearTime(from)))
+          .lte("date", formatDate(clearTime(to)));
 
         if (res.data) {
           res.data = res.data.map((d) => ({
             ...d,
-            date: clearTime(d.date),
+            date: clearTime(new Date(d.date)),
           }));
         }
 
@@ -51,7 +48,7 @@ const prices: Prices = import.meta.env.DEV
         return (
           await supabase.from(TABLE).upsert({
             price,
-            date,
+            date: formatDate(date),
           })
         ).error;
       },

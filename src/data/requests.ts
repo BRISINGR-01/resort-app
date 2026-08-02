@@ -3,12 +3,12 @@ import mockRequests from "./mockRequests";
 import mockBookings from "./mockBookings";
 import { setBookingsRef } from "./mockRequests";
 import type { Request, RequestPayload, SupabaseResponse } from "./types";
+import { clearTime, formatDate } from "../pages/admin/utils";
 
 interface Requests {
   list(): Promise<SupabaseResponse<Request[]>>;
   getPending(): Promise<SupabaseResponse<Request[]>>;
   getRejected(): Promise<SupabaseResponse<Request[]>>;
-  get(id: string): Promise<SupabaseResponse<Request>>;
   create({
     client_name,
     start_date,
@@ -31,30 +31,58 @@ if (import.meta.env.DEV) {
 
 const requests: Requests = {
   async list(): Promise<SupabaseResponse<Request[]>> {
-    return supabase
+    const { data, error } = await supabase
       .from(TABLE)
       .select("*")
       .order("created_at", { ascending: false });
+
+    if (error || !data) return { data, error };
+
+    return {
+      error: null,
+      data: data.map<Request>((d) => ({
+        ...d,
+        end_date: clearTime(new Date(d.end_date)),
+        start_date: clearTime(new Date(d.start_date)),
+      })),
+    };
   },
 
   async getPending(): Promise<SupabaseResponse<Request[]>> {
-    return supabase
+    const { data, error } = await supabase
       .from(TABLE)
       .select("*")
       .eq("denied", false)
       .order("created_at", { ascending: false });
+
+    if (error || !data) return { data, error };
+
+    return {
+      error: null,
+      data: data.map<Request>((d) => ({
+        ...d,
+        end_date: clearTime(new Date(d.end_date)),
+        start_date: clearTime(new Date(d.start_date)),
+      })),
+    };
   },
 
   async getRejected(): Promise<SupabaseResponse<Request[]>> {
-    return supabase
+    const { data, error } = await supabase
       .from(TABLE)
       .select("*")
       .eq("denied", true)
       .order("created_at", { ascending: false });
-  },
+    if (error || !data) return { data, error };
 
-  async get(id: string): Promise<SupabaseResponse<Request>> {
-    return supabase.from(TABLE).select("*").eq("id", id).single();
+    return {
+      error: null,
+      data: data.map<Request>((d) => ({
+        ...d,
+        end_date: clearTime(new Date(d.end_date)),
+        start_date: clearTime(new Date(d.start_date)),
+      })),
+    };
   },
 
   async create({
@@ -66,20 +94,16 @@ const requests: Requests = {
     phone = null,
     email = null,
   }: RequestPayload): Promise<SupabaseResponse<Request>> {
-    return supabase
-      .from(TABLE)
-      .insert({
-        client_name,
-        start_date,
-        end_date,
-        guests_amount,
-        note,
-        phone,
-        email,
-        denied: false,
-      })
-      .select()
-      .single();
+    return supabase.from(TABLE).insert({
+      client_name,
+      start_date: formatDate(clearTime(start_date)),
+      end_date: formatDate(clearTime(end_date)),
+      guests_amount,
+      note,
+      phone,
+      email,
+      denied: false,
+    });
   },
 
   async accept(id: string): Promise<SupabaseResponse<Request>> {
@@ -92,21 +116,26 @@ const requests: Requests = {
 
     if (error) return { data: null, error };
 
-    const { denied: _d, created_at: _c, id: _id, ...bookingFields } = request;
+    const {
+      denied: _d,
+      created_at: _c,
+      id: _id,
+      ...bookingFields
+    }: Request = request;
+
     return supabase
       .from(BOOKINGS_TABLE)
-      .insert(bookingFields)
+      .insert({
+        ...bookingFields,
+        end_date: formatDate(clearTime(bookingFields.end_date)),
+        start_date: formatDate(clearTime(bookingFields.start_date)),
+      })
       .select()
       .single();
   },
 
   async reject(id: string): Promise<SupabaseResponse<Request>> {
-    return supabase
-      .from(TABLE)
-      .update({ denied: true })
-      .eq("id", id)
-      .select()
-      .single();
+    return supabase.from(TABLE).update({ denied: true }).eq("id", id);
   },
 };
 

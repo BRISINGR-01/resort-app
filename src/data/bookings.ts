@@ -1,13 +1,12 @@
 import supabase from "./supabase";
 import mockBookings from "./mockBookings";
 import type { Booking, BookingPayload, SupabaseResponse } from "./types";
-import { clearTime } from "../pages/admin/utils";
+import { clearTime, formatDate } from "../pages/admin/utils";
 
 const TABLE = "design-studio-green-life-bookings";
 
 interface Bookings {
   list(): Promise<SupabaseResponse<Booking[]>>;
-  get(id: string): Promise<SupabaseResponse<Booking>>;
   create({
     client_name,
     start_date,
@@ -20,20 +19,30 @@ interface Bookings {
     patch: Partial<BookingPayload>,
   ): Promise<SupabaseResponse<Booking>>;
   remove(id: string): Promise<SupabaseResponse<Booking>>;
-  query(filters: Record<string, unknown>): Promise<SupabaseResponse<Booking[]>>;
-  getBookedDates(): Promise<SupabaseResponse<{ start: Date; end: Date }[]>>;
+  getBookedDates(): Promise<
+    SupabaseResponse<{ start_date: Date; end_date: Date }[]>
+  >;
 }
 
 const realBookings = {
   async list(): Promise<SupabaseResponse<Booking[]>> {
-    return supabase
+    const { data, error } = await supabase
       .from(TABLE)
       .select("*")
-      .order("created_at", { ascending: false });
-  },
+      .gte("end_date", formatDate(clearTime(new Date())))
 
-  async get(id: string): Promise<SupabaseResponse<Booking>> {
-    return supabase.from(TABLE).select("*").eq("id", id).single();
+      .order("created_at", { ascending: false });
+
+    if (error || !data) return { data, error };
+
+    return {
+      error: null,
+      data: data.map<Booking>((d) => ({
+        ...d,
+        end_date: clearTime(new Date(d.end_date)),
+        start_date: clearTime(new Date(d.start_date)),
+      })),
+    };
   },
 
   async create({
@@ -43,11 +52,15 @@ const realBookings = {
     guests_amount,
     note = null,
   }: BookingPayload): Promise<SupabaseResponse<Booking>> {
-    clearTime(start_date);
-    clearTime(end_date);
     return supabase
       .from(TABLE)
-      .insert({ client_name, start_date, end_date, guests_amount, note })
+      .insert({
+        client_name,
+        start_date: formatDate(clearTime(start_date)),
+        end_date: formatDate(clearTime(end_date)),
+        guests_amount,
+        note,
+      })
       .select()
       .single();
   },
@@ -63,33 +76,22 @@ const realBookings = {
     return supabase.from(TABLE).delete().eq("id", id).select().single();
   },
 
-  async query(
-    filters: Record<string, unknown>,
-  ): Promise<SupabaseResponse<Booking[]>> {
-    let builder = supabase.from(TABLE).select("*");
-    for (const [key, value] of Object.entries(filters)) {
-      builder = builder.eq(key, value);
-    }
-    return builder;
-  },
-
   async getBookedDates(): Promise<
-    SupabaseResponse<{ start: Date; end: Date }[]>
+    SupabaseResponse<{ start_date: Date; end_date: Date }[]>
   > {
     const { data, error } = await supabase
       .from(TABLE)
-      .select("start_date, end_date");
-    if (!data) return { data, error };
+      .select("start_date, end_date")
+      .gte("end_date", formatDate(clearTime(new Date())));
 
-    const today = new Date();
+    if (error || !data) return { data, error };
+
     return {
       error: null,
-      data: data
-        .filter((d) => d.end_date > today)
-        .map((d) => ({
-          start: d.start_date,
-          end: d.end_date,
-        })),
+      data: data.map((d) => ({
+        start_date: clearTime(new Date(d.start_date)),
+        end_date: clearTime(new Date(d.end_date)),
+      })),
     };
   },
 };

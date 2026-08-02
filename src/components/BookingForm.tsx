@@ -360,7 +360,6 @@ export default function BookingForm({
                 </button>
               ) : (
                 <div className="admin-delete-confirm">
-                  <span>{t("delete", "Delete?")}</span>
                   <button
                     type="button"
                     className="admin-btn admin-btn-delete-confirm"

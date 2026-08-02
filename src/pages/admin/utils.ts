@@ -32,14 +32,6 @@ export function useDayLabels() {
   ];
 }
 
-export function formatDate(date: Date): string {
-  return date.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
 export function clearTime(date: Date): Date {
   date.setHours(0, 0, 0, 0);
   return date;
@@ -54,6 +46,10 @@ export function formatDateTime(isoStr: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+export function formatDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 export function dateKey(y: number, m: number, d: number): string {

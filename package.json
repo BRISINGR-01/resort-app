@@ -22,7 +22,7 @@
     "swiper": "^14.0.7"
   },
   "scripts": {
-    "start": "vite",
+    "start": "vite  --mode production",
     "build": "vite build",
     "preview": "vite preview"
   },
