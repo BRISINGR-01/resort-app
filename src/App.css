@@ -1133,8 +1133,9 @@
   justify-content: center;
   font-size: 0.7rem;
   font-weight: 400;
-  color: var(--color-white);
-  opacity: 0.35;
+  color: var(--color-text-light);
+  background: transparent;
+  opacity: 0.5;
   border-radius: var(--radius-sm);
   z-index: 20;
 }
@@ -1155,7 +1156,7 @@
   .calendar__day-container[data-reserved]
   .neighbor-day-num {
   background: rgba(255, 255, 255, 0);
-  color: var(--color-white);
+  color: #912c2c;
   text-decoration: line-through;
   opacity: 1;
 }

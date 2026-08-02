@@ -3,6 +3,7 @@ import bookings from "../data/bookings";
 import {
   Calendar,
   type CalendarMonth,
+  type DayContentProps,
 } from "@demark-pro/react-booking-calendar";
 import "@demark-pro/react-booking-calendar/dist/react-booking-calendar.css";
 import { useTranslation } from "react-i18next";
@@ -14,6 +15,36 @@ const today = clearTime(new Date());
 const currYear = today.getFullYear();
 const currMonth = today.getMonth() as CalendarMonth;
 const years = [currYear, currYear + 1, currYear + 2];
+
+function AvailabilityDayContent({
+  state,
+  children,
+  innerProps,
+  getClassNames,
+}: DayContentProps) {
+  const { className = "", ...restInner } = innerProps ?? {};
+
+  const attributes = {
+    ...(state.isSelected || state.isSelectedStart || state.isSelectedEnd
+      ? { "data-selected": true }
+      : {}),
+    ...(state.isReserved ? { "data-reserved": true } : {}),
+    ...(state.isPast ? { "data-past": true } : {}),
+    ...(state.isToday ? { "data-today": true } : {}),
+  };
+
+  const extraClass = state.isSameMonth ? "" : " neighbor-day-num";
+
+  return (
+    <div
+      className={getClassNames("DayContent", `${className}${extraClass}`)}
+      {...attributes}
+      {...restInner}
+    >
+      {children}
+    </div>
+  );
+}
 
 function calcReserved(
   selectedMonth: number,
@@ -114,6 +145,7 @@ export default function Availability() {
                 }}
                 options={{ weekStartsOn: 0, useAttributes: true }}
                 disabled={() => true}
+                components={{ DayContent: AvailabilityDayContent }}
                 classNames={{
                   MonthArrowBack: "avail-cal-arrow",
                   MonthArrowNext: "avail-cal-arrow",
