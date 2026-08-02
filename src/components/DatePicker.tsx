@@ -19,8 +19,8 @@ function formatShort(date: Date): string {
 }
 
 interface BookedRange {
-  start: Date;
-  end: Date;
+  start_date: Date;
+  end_date: Date;
 }
 
 interface CalendarModalProps {
@@ -67,7 +67,10 @@ function CalendarModal({
     (date: Date) => {
       const d = clearTime(new Date(date));
       if (!previouslySelected?.[0] || !previouslySelected?.[1]) return false;
-      return d >= clearTime(previouslySelected[0]) && d <= clearTime(previouslySelected[1]);
+      return (
+        d >= clearTime(previouslySelected[0]) &&
+        d <= clearTime(previouslySelected[1])
+      );
     },
     [previouslySelected],
   );
@@ -76,7 +79,9 @@ function CalendarModal({
     (date: Date) => {
       const d = clearTime(new Date(date));
       return bookedRanges.some(
-        (b) => d >= clearTime(new Date(b.start)) && d <= clearTime(new Date(b.end)),
+        (b) =>
+          d >= clearTime(new Date(b.start_date)) &&
+          d <= clearTime(new Date(b.end_date)),
       );
     },
     [bookedRanges],
@@ -98,11 +103,15 @@ function CalendarModal({
     return bookedRanges
       .filter((b) => {
         if (!ps || !pe) return true;
-        const start = clearTime(new Date(b.start));
-        const end = clearTime(new Date(b.end));
+        const start = clearTime(new Date(b.start_date));
+        const end = clearTime(new Date(b.end_date));
         return !(start <= clearTime(pe) && end >= clearTime(ps));
       })
-      .map((b) => ({ startDate: b.start, endDate: b.end, color: "#ffffff" }));
+      .map((b) => ({
+        startDate: b.start_date,
+        endDate: b.end_date,
+        color: "#ffffff",
+      }));
   }, [bookedRanges, previouslySelected]);
 
   const handleDayClick = useCallback(
@@ -123,7 +132,13 @@ function CalendarModal({
   );
 
   const DayContainer = useCallback(
-    ({ date, state, children, innerProps, getClassNames }: DayContainerProps) => {
+    ({
+      date,
+      state,
+      children,
+      innerProps,
+      getClassNames,
+    }: DayContainerProps) => {
       const { className = "", ...restInner } = innerProps ?? {};
       const attributes = {
         ...(state.isSelected || state.isSelectedStart || state.isSelectedEnd
@@ -133,7 +148,9 @@ function CalendarModal({
         ...(state.isSelectedEnd ? { "data-selected-end": true } : {}),
         ...(state.isDisabled ? { "data-disabled": true } : {}),
         ...(state.isReserved ? { "data-reserved": true } : {}),
-        ...(isPreviouslySelected(date) ? { "data-previously-selected": true } : {}),
+        ...(isPreviouslySelected(date)
+          ? { "data-previously-selected": true }
+          : {}),
       };
       return (
         <div
@@ -157,7 +174,8 @@ function CalendarModal({
     onClose();
   };
 
-  const selecting: "checkin" | "checkout" = checkIn && !checkOut ? "checkout" : "checkin";
+  const selecting: "checkin" | "checkout" =
+    checkIn && !checkOut ? "checkout" : "checkin";
 
   if (!open) return null;
 
